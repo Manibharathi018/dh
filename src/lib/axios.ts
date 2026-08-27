@@ -3,12 +3,13 @@ import axios from "axios";
 // All API calls go through Next.js proxy at /api/*
 // Next.js rewrites /api/* → EB backend (server-to-server, no CORS)
 const api = axios.create({
-  baseURL: "/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://api.dfoclothing.com",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
 
 // Attach JWT token from localStorage as Bearer token on every request
 api.interceptors.request.use(
