@@ -90,7 +90,7 @@ export default function CheckoutPage() {
 
       // 3. Initialize Razorpay Checkout
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_mockkey", // Placeholder/fallback
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_RAZORPAY_KEY_ID) || "rzp_live_TUljEIHmqWOw13",
         amount: paymentInfo.amount,
         currency: "INR",
         name: "DHANYA FACTORY OUTLET",
