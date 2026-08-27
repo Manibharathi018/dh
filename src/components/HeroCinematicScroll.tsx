@@ -7,6 +7,12 @@ import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import flat1 from "@/assets/flat15-1.jpg";
+import flat2 from "@/assets/flat15-2.jpg";
+import flat3 from "@/assets/flat15-3.jpg";
+import flat4 from "@/assets/flat15-4.png";
+import flat5 from "@/assets/flat15-5.jpg";
+
 interface CardKeyframe {
   image: string;
   alt: string;
@@ -24,12 +30,12 @@ interface CardKeyframe {
   widthClass: string;
 }
 
-// 5 Curated Editorial Cards with sequential choreographed trajectories
+// 5 Curated Editorial Cards with sequential choreographed trajectories using user uploaded product images
 const EDITORIAL_CARDS: CardKeyframe[] = [
-  // CARD 1: Enters from bottom-left, travels diagonally upward behind typography (Phase 0.00 -> 0.38)
+  // CARD 1: Brown Striped Shirt
   {
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=900&auto=format&fit=crop",
-    alt: "Editorial Look 01 - Ochre Casual",
+    image: flat1.src,
+    alt: "Editorial Look 01 - Brown Striped Shirt",
     progressStops: [0.0, 0.08, 0.20, 0.32, 0.42],
     desktopX: ["-38vw", "-22vw", "-12vw", "-6vw", "-20vw"],
     desktopY: ["48vh", "22vh", "2vh", "-22vh", "-55vh"],
@@ -38,16 +44,16 @@ const EDITORIAL_CARDS: CardKeyframe[] = [
     mobileX: ["-32vw", "-18vw", "-8vw", "-4vw", "-18vw"],
     mobileY: ["40vh", "18vh", "2vh", "-18vh", "-45vh"],
     mobileRotate: [-5, -4, -3, -2, -1],
-    mobileScale: [0.85, 0.9, 0.95, 0.9, 0.85],
+    mobileScale: [1.0, 1.1, 1.2, 1.1, 1.0],
     opacityStops: [0, 1, 1, 0.9, 0],
-    zIndex: 20, // Behind headline
-    widthClass: "w-[190px] h-[250px] sm:w-[240px] sm:h-[320px] md:w-[320px] md:h-[430px] lg:w-[360px] lg:h-[480px]",
+    zIndex: 20,
+    widthClass: "w-[240px] h-[320px] sm:w-[280px] sm:h-[370px] md:w-[320px] md:h-[430px] lg:w-[360px] lg:h-[480px]",
   },
 
-  // CARD 2: Enters from the right side, sweeps across right/center, overlaps headline (Phase 0.18 -> 0.58)
+  // CARD 2: Blue Flower Patch Shirt
   {
-    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=900&auto=format&fit=crop",
-    alt: "Editorial Look 02 - Winter Coat",
+    image: flat2.src,
+    alt: "Editorial Look 02 - Blue Flower Patch Shirt",
     progressStops: [0.18, 0.28, 0.40, 0.50, 0.62],
     desktopX: ["42vw", "26vw", "10vw", "-2vw", "-26vw"],
     desktopY: ["42vh", "18vh", "-2vh", "-24vh", "-52vh"],
@@ -56,16 +62,16 @@ const EDITORIAL_CARDS: CardKeyframe[] = [
     mobileX: ["34vw", "20vw", "6vw", "-4vw", "-20vw"],
     mobileY: ["36vh", "16vh", "-2vh", "-20vh", "-44vh"],
     mobileRotate: [5, 4, 2, 0, -2],
-    mobileScale: [0.85, 0.92, 0.95, 0.9, 0.85],
+    mobileScale: [1.0, 1.1, 1.2, 1.1, 1.0],
     opacityStops: [0, 1, 1, 0.95, 0],
-    zIndex: 35, // In front of headline (layered depth)
-    widthClass: "w-[180px] h-[240px] sm:w-[230px] sm:h-[310px] md:w-[300px] md:h-[410px] lg:w-[340px] lg:h-[460px]",
+    zIndex: 35,
+    widthClass: "w-[230px] h-[310px] sm:w-[270px] sm:h-[360px] md:w-[300px] md:h-[410px] lg:w-[340px] lg:h-[460px]",
   },
 
-  // CARD 3: Enters from lower-center-left, floats across middle (Phase 0.38 -> 0.74)
+  // CARD 3: Dark Grey Striped Short Sleeve Shirt
   {
-    image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=900&auto=format&fit=crop",
-    alt: "Editorial Look 03 - Spring Pastels",
+    image: flat3.src,
+    alt: "Editorial Look 03 - Dark Grey Striped Short Sleeve Shirt",
     progressStops: [0.38, 0.48, 0.58, 0.68, 0.78],
     desktopX: ["-36vw", "-18vw", "-2vw", "14vw", "32vw"],
     desktopY: ["46vh", "20vh", "-6vh", "-28vh", "-56vh"],
@@ -74,16 +80,16 @@ const EDITORIAL_CARDS: CardKeyframe[] = [
     mobileX: ["-30vw", "-14vw", "-2vw", "10vw", "24vw"],
     mobileY: ["38vh", "16vh", "-4vh", "-22vh", "-46vh"],
     mobileRotate: [-4, -2, 0, 2, 4],
-    mobileScale: [0.85, 0.9, 0.95, 0.9, 0.85],
+    mobileScale: [1.0, 1.1, 1.2, 1.1, 1.0],
     opacityStops: [0, 1, 1, 0.95, 0],
-    zIndex: 22, // Behind headline
-    widthClass: "w-[190px] h-[250px] sm:w-[240px] sm:h-[320px] md:w-[310px] md:h-[420px] lg:w-[350px] lg:h-[470px]",
+    zIndex: 22,
+    widthClass: "w-[240px] h-[320px] sm:w-[280px] sm:h-[370px] md:w-[310px] md:h-[420px] lg:w-[350px] lg:h-[470px]",
   },
 
-  // CARD 4: Enters from bottom-right, glides across right top overlapping typography (Phase 0.54 -> 0.88)
+  // CARD 4: Dusty Rose Tailored Shirt
   {
-    image: "https://images.unsplash.com/photo-1617137968427-85924c800a22?q=80&w=900&auto=format&fit=crop",
-    alt: "Editorial Look 04 - Modern Tailored",
+    image: flat4.src,
+    alt: "Editorial Look 04 - Dusty Rose Tailored Shirt",
     progressStops: [0.54, 0.64, 0.74, 0.82, 0.92],
     desktopX: ["38vw", "22vw", "6vw", "-8vw", "-28vw"],
     desktopY: ["48vh", "22vh", "0vh", "-22vh", "-52vh"],
@@ -92,16 +98,16 @@ const EDITORIAL_CARDS: CardKeyframe[] = [
     mobileX: ["30vw", "16vw", "4vw", "-6vw", "-22vw"],
     mobileY: ["40vh", "18vh", "0vh", "-18vh", "-42vh"],
     mobileRotate: [4, 3, 1, 0, -2],
-    mobileScale: [0.85, 0.92, 0.95, 0.9, 0.85],
+    mobileScale: [1.0, 1.1, 1.2, 1.1, 1.0],
     opacityStops: [0, 1, 1, 0.95, 0],
-    zIndex: 36, // In front of headline
-    widthClass: "w-[180px] h-[240px] sm:w-[230px] sm:h-[310px] md:w-[300px] md:h-[400px] lg:w-[340px] lg:h-[450px]",
+    zIndex: 36,
+    widthClass: "w-[230px] h-[310px] sm:w-[270px] sm:h-[360px] md:w-[300px] md:h-[400px] lg:w-[340px] lg:h-[450px]",
   },
 
-  // CARD 5: Final sweep from bottom-left (Phase 0.70 -> 1.00)
+  // CARD 5: Cream Maroon Floral Embroidered Shirt
   {
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=900&auto=format&fit=crop",
-    alt: "Editorial Look 05 - Footwear Statement",
+    image: flat5.src,
+    alt: "Editorial Look 05 - Cream Maroon Floral Embroidered Shirt",
     progressStops: [0.70, 0.78, 0.88, 0.95, 1.0],
     desktopX: ["-32vw", "-14vw", "0vw", "16vw", "34vw"],
     desktopY: ["45vh", "18vh", "-8vh", "-28vh", "-55vh"],
@@ -110,10 +116,10 @@ const EDITORIAL_CARDS: CardKeyframe[] = [
     mobileX: ["-26vw", "-10vw", "0vw", "12vw", "26vw"],
     mobileY: ["36vh", "14vh", "-6vh", "-22vh", "-45vh"],
     mobileRotate: [-3, -1, 1, 3, 5],
-    mobileScale: [0.85, 0.9, 0.95, 0.9, 0.85],
+    mobileScale: [1.0, 1.1, 1.2, 1.1, 1.0],
     opacityStops: [0, 1, 1, 0.85, 0],
-    zIndex: 24, // Behind headline
-    widthClass: "w-[190px] h-[250px] sm:w-[240px] sm:h-[320px] md:w-[320px] md:h-[420px] lg:w-[360px] lg:h-[470px]",
+    zIndex: 24,
+    widthClass: "w-[240px] h-[320px] sm:w-[280px] sm:h-[370px] md:w-[320px] md:h-[420px] lg:w-[360px] lg:h-[470px]",
   },
 ];
 
@@ -159,15 +165,15 @@ function FloatingEditorialCard({
       }}
       className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 will-change-transform pointer-events-none"
     >
-      {/* Physical editorial photograph frame: crisp white border, subtle shadow */}
-      <div className={`relative ${widthClass} bg-white p-2.5 sm:p-3 md:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.1),0_8px_20px_rgba(0,0,0,0.06)] border border-neutral-100/80 rounded-[1px] transition-shadow duration-300`}>
-        <div className="relative w-full h-full overflow-hidden bg-neutral-100">
+      {/* Physical editorial photograph frame: crisp white border, clean shadow */}
+      <div className={`relative ${widthClass} bg-white p-2 sm:p-2.5 md:p-3.5 shadow-[0_20px_50px_rgba(0,0,0,0.12),0_8px_20px_rgba(0,0,0,0.08)] border border-neutral-200/90 rounded-[2px] transition-shadow duration-300`}>
+        <div className="relative w-full h-full overflow-hidden bg-white rounded-[1px]">
           <Image
             src={config.image}
             alt={config.alt}
             fill
-            className="object-cover select-none"
-            sizes="(max-width: 640px) 190px, (max-width: 768px) 240px, (max-width: 1024px) 320px, 360px"
+            className="object-contain object-center select-none"
+            sizes="(max-width: 640px) 250px, (max-width: 768px) 280px, (max-width: 1024px) 320px, 360px"
             priority={false}
           />
         </div>
@@ -204,7 +210,7 @@ export default function HeroCinematicScroll() {
     offset: ["start start", "end end"],
   });
 
-  // Typography Subtle Transformations
+  // Typography Transformations
   const eyebrowY = useTransform(scrollYProgress, [0, 0.35, 0.6], ["0px", "-12px", "-35px"]);
   const eyebrowOpacity = useTransform(scrollYProgress, [0, 0.35, 0.6], [1, 0.8, 0]);
 
@@ -214,14 +220,14 @@ export default function HeroCinematicScroll() {
   const ctaY = useTransform(scrollYProgress, [0, 0.5, 0.8, 1], ["0px", "-8px", "-24px", "-40px"]);
   const ctaOpacity = useTransform(scrollYProgress, [0, 0.65, 0.88, 1], [1, 1, 0.7, 0]);
 
-  // Scroll Down Indicator - fades rapidly on initial scroll
+  // Scroll Down Indicator
   const chevronOpacity = useTransform(scrollYProgress, [0, 0.12], [1, 0]);
   const chevronY = useTransform(scrollYProgress, [0, 0.12], ["0px", "15px"]);
 
   // Fallback layout for reduced motion preferences
   if (prefersReducedMotion) {
     return (
-      <section className="relative py-24 md:py-36 bg-[#fbf9f6] w-full overflow-hidden flex flex-col items-center justify-center border-y border-neutral-200/40">
+      <section className="relative py-24 md:py-36 bg-white w-full overflow-hidden flex flex-col items-center justify-center border-y border-neutral-200/40">
         <div className="relative z-30 flex flex-col items-center justify-center w-full px-6 text-center max-w-4xl mx-auto">
           <p className="text-xs md:text-sm font-semibold tracking-[0.25em] uppercase text-neutral-500 mb-4 md:mb-6">
             Discover the best deal
@@ -242,15 +248,15 @@ export default function HeroCinematicScroll() {
   }
 
   return (
-    // Dedicated 300vh Scroll Timeline Wrapper
-    <section ref={containerRef} className="relative h-[300vh] w-full bg-[#fbf9f6]">
-      {/* Pinned 100vh Sticky Viewport with complete overflow clipping */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col items-center justify-center select-none">
+    // Dedicated 300vh Scroll Timeline Wrapper with Pure White Background
+    <section ref={containerRef} className="relative h-[300vh] w-full bg-white">
+      {/* Pinned 100vh Sticky Viewport */}
+      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col items-center justify-center select-none bg-white">
         
-        {/* Subtle Warm Editorial Texture / Base Layer */}
-        <div className="absolute inset-0 bg-[#fbf9f6] z-0 pointer-events-none" />
+        {/* Pure White Base Background Layer */}
+        <div className="absolute inset-0 bg-white z-0 pointer-events-none" />
 
-        {/* ── FLOATING MEDIA CARDS (Choreographed sequentially along scroll timeline) ── */}
+        {/* ── FLOATING MEDIA CARDS (5 Uploaded Product Shirts) ── */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {EDITORIAL_CARDS.map((card, idx) => (
             <FloatingEditorialCard
