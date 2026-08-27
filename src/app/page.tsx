@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 
 // Images & Assets
 import pumaRunner from "@/assets/puma-runner.png";
+import shopimage from "@/assets/shopimage.jpg";
 
 function ProductCard({ p }: { p: Partial<Product> }) {
   const { isAuthenticated, user } = useAuthStore();
@@ -1100,12 +1101,13 @@ function StoreLocation() {
   return (
     <section className="py-16 md:py-24 bg-surface">
       <div className="container-editorial grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-        <div className="image-zoom rounded-sm overflow-hidden aspect-[16/11] shadow-editorial relative">
+        <div className="image-zoom rounded-sm overflow-hidden aspect-[4/3] shadow-editorial relative border border-gray-200">
           <Image
-            src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop"
-            alt="Dhanya Factory Outlet store interior"
+            src={shopimage}
+            alt="Dhanya Factory Outlet Storefront"
             fill
-            className="object-cover"
+            className="object-cover object-center"
+            priority
           />
         </div>
         <div>
@@ -1117,20 +1119,34 @@ function StoreLocation() {
           <div className="mt-8 space-y-4 text-sm">
             <div className="flex items-start gap-3">
               <MapPin className="w-4 h-4 mt-0.5 text-sale shrink-0" />
-              <span>Ground Floor, Anna Salai, Chennai — 600002, Tamil Nadu</span>
+              <span>Flat No B 52/59, Ground Floor, 70 Feet Road, Siva Elango Salai, Periyar Nagar West, Chennai, Tamil Nadu 600082</span>
             </div>
             <div className="flex items-start gap-3">
               <Clock className="w-4 h-4 mt-0.5 text-sale shrink-0" />
-              <span>Open Daily · 10:00 AM – 9:30 PM</span>
+              <span>Open Daily · 10:00 AM – 10:00 PM</span>
             </div>
             <div className="flex items-start gap-3">
               <Phone className="w-4 h-4 mt-0.5 text-sale shrink-0" />
-              <span>+91 98400 00000</span>
+              <a href="tel:+919629850010" className="hover:underline font-medium">096298 50010</a>
             </div>
           </div>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="#" className="btn-ink"><MapPin className="w-4 h-4" /> Get Directions</Link>
-            <Link href="#" className="btn-outline-ink"><MessageCircle className="w-4 h-4" /> WhatsApp</Link>
+            <a
+              href="https://www.google.co.in/maps/place/DHANYA+FACTORY+OUTLET/@13.1141749,80.2261172,17.18z/data=!4m7!3m6!1s0x3a52656148d441c9:0xaed1d06065540799!4b1!8m2!3d13.1139617!4d80.2275161!16s%2Fg%2F11z5wnssdf?entry=ttu&g_ep=EgoyMDI2MDgyNC4wIKXMDSoASAFQAw%3D%3D"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-ink inline-flex items-center gap-2"
+            >
+              <MapPin className="w-4 h-4" /> Get Directions
+            </a>
+            <a
+              href="https://wa.me/919629850010?text=Hello%20Dhanya%20Factory%20Outlet,%20I%20have%20an%20inquiry%20regarding%20products"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-outline-ink inline-flex items-center gap-2"
+            >
+              <MessageCircle className="w-4 h-4" /> WhatsApp
+            </a>
           </div>
         </div>
       </div>

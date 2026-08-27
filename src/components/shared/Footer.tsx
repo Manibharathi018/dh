@@ -124,27 +124,32 @@ export default function Footer() {
                 <p className="font-bold text-gray-900 tracking-wide uppercase">
                   DHANYA FACTORY OUTLET
                 </p>
-                <p className="text-gray-600 mt-1">
-                  No: 22/19, 45th street,<br />
-                  9th avenue,<br />
-                  Ashok nagar,<br />
-                  Chennai - 600083
+                <p className="text-gray-600 mt-1 leading-relaxed">
+                  Flat No B 52/59, Ground Floor,<br />
+                  70 Feet Road, Siva Elango Salai,<br />
+                  Periyar Nagar West, Chennai,<br />
+                  Tamil Nadu 600082
                 </p>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-2 space-y-1">
                 <p className="text-gray-900 font-medium">
-                  <a href="tel:+918148706199" className="hover:underline">
-                    +91 8148706199
+                  <a href="tel:+919629850010" className="hover:underline">
+                    096298 50010
                   </a>
                 </p>
                 <p className="text-gray-600">
-                  <a href="mailto:Support@dfo.in" className="hover:underline">
-                    Support@dfo.in
+                  <a href="mailto:dhanyafactoryoutlet@gmail.com" className="hover:underline">
+                    dhanyafactoryoutlet@gmail.com
                   </a>
                 </p>
-                <p className="text-gray-600 mt-1">
-                  Mon - Sat: 10.00 AM - 7.00 PM
+                <p className="text-gray-600">
+                  <a href="https://dfoclothing.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    dfoclothing.com
+                  </a>
+                </p>
+                <p className="text-gray-600 mt-1 text-xs">
+                  Open · Closes 10 pm
                 </p>
               </div>
             </div>
@@ -290,26 +295,31 @@ export default function Footer() {
                   DHANYA FACTORY OUTLET
                 </p>
                 <p className="mt-1.5 leading-relaxed">
-                  No: 22/19, 45th street,<br />
-                  9th avenue,<br />
-                  Ashok nagar,<br />
-                  Chennai - 600083
+                  Flat No B 52/59, Ground Floor,<br />
+                  70 Feet Road, Siva Elango Salai,<br />
+                  Periyar Nagar West, Chennai,<br />
+                  Tamil Nadu 600082
                 </p>
               </div>
 
               <div className="pt-1 space-y-1">
                 <p className="text-gray-900 font-medium">
-                  <a href="tel:+918148706199" className="hover:underline">
-                    +91 8148706199
+                  <a href="tel:+919629850010" className="hover:underline">
+                    096298 50010
                   </a>
                 </p>
                 <p className="text-gray-600">
-                  <a href="mailto:Support@dfo.in" className="hover:underline">
-                    Support@dfo.in
+                  <a href="mailto:dhanyafactoryoutlet@gmail.com" className="hover:underline">
+                    dhanyafactoryoutlet@gmail.com
                   </a>
                 </p>
-                <p className="text-gray-500 pt-1">
-                  Mon - Sat: 10.00 AM - 7.00 PM
+                <p className="text-gray-600">
+                  <a href="https://dfoclothing.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    dfoclothing.com
+                  </a>
+                </p>
+                <p className="text-gray-500 pt-1 text-xs">
+                  Open · Closes 10 pm
                 </p>
               </div>
             </div>
