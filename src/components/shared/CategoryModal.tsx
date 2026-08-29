@@ -31,6 +31,11 @@ export default function CategoryModal({
   const [address, setAddress] = useState("");
   const [parentId, setParentId] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
+  
+  // File Upload State
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Fetch categories to populate parent options
   const { data: categories = [] as CategoryDTO[] } = useQuery<CategoryDTO[]>({
@@ -45,15 +50,18 @@ export default function CategoryModal({
   useEffect(() => {
     if (isOpen) {
       setErrorMsg("");
+      setSelectedFile(null);
       if (mode === "edit" && categoryToEdit) {
         setName(categoryToEdit.name || "");
         setDescription(categoryToEdit.description || "");
         setParentId(categoryToEdit.parentId || null);
         setAddress(categoryToEdit.address || "");
+        setFilePreview(categoryToEdit.address || null);
       } else {
         setName("");
         setDescription("");
         setAddress("");
+        setFilePreview(null);
         if (mode === "subcategory") {
           setParentId(defaultParentId || (mainCategories[0]?.id || null));
         } else {
@@ -85,7 +93,34 @@ export default function CategoryModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate format: JPG, JPEG, PNG, WEBP
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      setErrorMsg("Please select an image of type JPG, JPEG, PNG, or WEBP.");
+      return;
+    }
+
+    setSelectedFile(file);
+    setErrorMsg("");
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFilePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setFilePreview(null);
+    setAddress("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -99,16 +134,52 @@ export default function CategoryModal({
       return;
     }
 
-    const payload: CategoryDTO = {
-      name: name.trim(),
-      description: description.trim() || `${mode === "subcategory" ? "Collection subcategory" : "Collection category"}`,
-      imageUrl: categoryToEdit?.imageUrl || "",
-      address: address.trim(),
-      active: categoryToEdit ? categoryToEdit.active : true,
-      parentId: (mode === "subcategory" || (mode === "edit" && parentId)) && parentId ? parentId : undefined,
-    };
+    // Validation: Required on create
+    if (mode !== "edit" && !selectedFile) {
+      setErrorMsg("Please select a category image.");
+      return;
+    }
 
-    addCategoryMutation.mutate(payload);
+    setIsUploading(true);
+    let finalAddress = address;
+
+    try {
+      if (selectedFile) {
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dq41e3dn1";
+        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ecommerce";
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        formData.append("upload_preset", uploadPreset);
+
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+        if (!data.secure_url) {
+          throw new Error(data.error?.message || "Failed to upload image to Cloudinary.");
+        }
+        finalAddress = data.secure_url;
+      }
+
+      const payload: CategoryDTO = {
+        name: name.trim(),
+        description: description.trim() || `${mode === "subcategory" ? "Collection subcategory" : "Collection category"}`,
+        imageUrl: categoryToEdit?.imageUrl || "",
+        address: finalAddress.trim(),
+        active: categoryToEdit ? categoryToEdit.active : true,
+        parentId: (mode === "subcategory" || (mode === "edit" && parentId)) && parentId ? parentId : undefined,
+      };
+
+      await addCategoryMutation.mutateAsync(payload);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.message || "Failed to save category. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -194,15 +265,69 @@ export default function CategoryModal({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="modalAddressInput" className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-              Image URL (Cloudinary)
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+              Category Image *
             </Label>
-            <Input
-              id="modalAddressInput"
-              placeholder="e.g. https://res.cloudinary.com/..."
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="rounded-none border-gray-300 h-11 focus:border-black"
+            
+            {filePreview ? (
+              <div className="space-y-2">
+                <div className="relative aspect-video w-full border border-neutral-200 bg-neutral-50 overflow-hidden">
+                  <img
+                    src={filePreview}
+                    alt="Category Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {selectedFile && (
+                  <p className="text-xs text-gray-500 font-mono truncate">
+                    {selectedFile.name}
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const input = document.getElementById("modalFileInput");
+                      input?.click();
+                    }}
+                    className="h-9 px-3 text-xs uppercase tracking-wider cursor-pointer"
+                  >
+                    Change Image
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleRemoveFile}
+                    className="h-9 px-3 text-xs uppercase tracking-wider text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 cursor-pointer"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-gray-300 hover:border-black transition-colors p-6 text-center bg-gray-50/50 cursor-pointer relative">
+                <input
+                  type="file"
+                  id="modalFileInput"
+                  accept="image/png, image/jpeg, image/jpg, image/webp"
+                  onChange={handleFileChange}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                />
+                <div className="text-xs sm:text-sm font-medium text-black">
+                  Select Image
+                </div>
+                <div className="text-[11px] text-gray-400 mt-1">
+                  Supports PNG, JPG, JPEG, WEBP
+                </div>
+              </div>
+            )}
+            <input
+              type="file"
+              id="modalFileInput"
+              accept="image/png, image/jpeg, image/jpg, image/webp"
+              onChange={handleFileChange}
+              className="hidden"
             />
           </div>
 
@@ -231,10 +356,10 @@ export default function CategoryModal({
             </Button>
             <Button
               type="submit"
-              disabled={addCategoryMutation.isPending}
+              disabled={addCategoryMutation.isPending || isUploading}
               className="rounded-none bg-black text-white hover:bg-neutral-800 h-11 px-6 uppercase text-[10px] tracking-wider font-semibold flex items-center gap-1.5"
             >
-              {addCategoryMutation.isPending ? (
+              {addCategoryMutation.isPending || isUploading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 "Save"
