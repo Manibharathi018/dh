@@ -70,10 +70,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       try {
         setIsAdding(true);
         await addToCart(product, quantity, product.hasSizes ? selectedSize : undefined);
+        alert("Product added to cart successfully!");
         router.push("/cart");
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to add to cart", err);
-        alert("Failed to add item to cart. Please try again.");
+        alert(err?.response?.data?.message || err?.message || "Failed to add item to cart. Please try again.");
       } finally {
         setIsAdding(false);
       }

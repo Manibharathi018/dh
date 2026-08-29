@@ -81,6 +81,10 @@ export default function WishlistPage() {
                         e.preventDefault(); 
                         e.stopPropagation(); 
                         if (!isAuthenticated) { router.push("/login"); return; }
+                        if (p.hasSizes) {
+                          router.push(`/products/${p.id}`);
+                          return;
+                        }
                         if (p.quantity !== 0 && p.id) {
                           try { 
                             await addToCart(p as Product, 1); 

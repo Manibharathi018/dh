@@ -63,6 +63,10 @@ function ProductCard({ p }: { p: Partial<Product> }) {
               e.preventDefault(); 
               e.stopPropagation(); 
               if (!isAuthenticated) { router.push("/login"); return; }
+              if (p.hasSizes) {
+                router.push(`/products/${p.id}`);
+                return;
+              }
               if (p.quantity !== 0 && p.id) {
                 try { 
                   await addToCart(p as Product, 1); 
@@ -665,6 +669,10 @@ function CuratedGrid() {
                       e.preventDefault(); 
                       e.stopPropagation(); 
                       if (!isAuthenticated) { router.push("/login"); return; }
+                      if (p.hasSizes) {
+                        router.push(`/products/${p.id}`);
+                        return;
+                      }
                       if (p.quantity !== 0 && p.id) {
                         try { 
                           await addToCart(p, 1); 
