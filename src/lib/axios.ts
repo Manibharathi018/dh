@@ -3,7 +3,7 @@ import axios from "axios";
 // All API calls go through Next.js proxy at /api/*
 // Next.js rewrites /api/* → EB backend (server-to-server, no CORS)
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://dfoclothing.com",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://api.dfoclothing.com",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
