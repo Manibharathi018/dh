@@ -12,6 +12,7 @@ import { useSearchStore } from "@/store/useSearchStore";
 import SearchDrawer from "@/components/shared/SearchDrawer";
 import { Button } from "@/components/ui/button";
 
+import { categoryService } from "@/services/categoryService";
 import logoImg from "@/assets/logo.png";
 
 export default function Navbar() {
@@ -24,9 +25,24 @@ export default function Navbar() {
   const wishlistCount = wishlists[userId]?.length || 0;
   const profileLink = isAuthenticated ? (user?.role === "ADMIN" ? "/admin" : "/dashboard") : "/login";
 
+  const [categories, setCategories] = useState<any[]>([]);
+
   useEffect(() => {
     fetchCart();
   }, [fetchCart]);
+
+  useEffect(() => {
+    async function loadNavCategories() {
+      try {
+        const active = await categoryService.getActiveCategories();
+        const roots = (active || []).filter((c: any) => !c.parentId);
+        setCategories(roots);
+      } catch (err) {
+        console.error("Failed to load nav categories:", err);
+      }
+    }
+    loadNavCategories();
+  }, []);
 
   // Track raw scroll position to drive logo visibility
   const { scrollY } = useScroll();
@@ -43,11 +59,12 @@ export default function Navbar() {
   }, [scrollY]);
 
   const navLinks: { name: string; href: string; highlight?: boolean }[] = [
-    { name: "New Arrivals", href: "/products" },
-    { name: "Men", href: "/men" },
-    { name: "Women", href: "/women" },
-    { name: "Footwear", href: "/footwear" },
-    { name: "Accessories", href: "/accessories" },
+    { name: "Shop All", href: "/products" },
+    ...categories.map((c) => ({
+      name: c.name,
+      href: `/category/${encodeURIComponent(c.name)}`,
+      highlight: false,
+    })),
   ];
 
   return (

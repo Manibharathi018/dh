@@ -46,11 +46,20 @@ const productSchema = z.object({
   description: z.string().min(5, "Description must be at least 5 characters"),
   quantity: z.coerce.number().min(0, "Quantity cannot be negative").optional(),
   categoryName: z.string().min(1, "Category is required"),
-  hasSizes: z.boolean().optional(),
+  hasDressSizes: z.boolean().optional(),
+  hasShoeSizes: z.boolean().optional(),
   sizeSQuantity: z.coerce.number().min(0).optional(),
   sizeMQuantity: z.coerce.number().min(0).optional(),
   sizeLQuantity: z.coerce.number().min(0).optional(),
   sizeXLQuantity: z.coerce.number().min(0).optional(),
+  sizeXXLQuantity: z.coerce.number().min(0).optional(),
+  size7Quantity: z.coerce.number().min(0).optional(),
+  size8Quantity: z.coerce.number().min(0).optional(),
+  size9Quantity: z.coerce.number().min(0).optional(),
+  size10Quantity: z.coerce.number().min(0).optional(),
+  size11Quantity: z.coerce.number().min(0).optional(),
+  size12Quantity: z.coerce.number().min(0).optional(),
+  size13Quantity: z.coerce.number().min(0).optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -113,16 +122,26 @@ export default function AdminProducts() {
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
+      brand: "",
       price: 999,
       discountPercentage: 0,
       description: "",
       quantity: 10,
       categoryName: "",
-      hasSizes: false,
+      hasDressSizes: false,
+      hasShoeSizes: false,
       sizeSQuantity: 0,
       sizeMQuantity: 0,
       sizeLQuantity: 0,
       sizeXLQuantity: 0,
+      sizeXXLQuantity: 0,
+      size7Quantity: 0,
+      size8Quantity: 0,
+      size9Quantity: 0,
+      size10Quantity: 0,
+      size11Quantity: 0,
+      size12Quantity: 0,
+      size13Quantity: 0,
     },
   });
 
@@ -330,48 +349,59 @@ export default function AdminProducts() {
   const handleAddProductSubmit = (data: ProductFormValues) => {
     let desc = (data.description || "Premium collection piece.").trim();
     let finalQty = Number(data.quantity || 0);
-    if (data.hasSizes) {
+    if (data.hasDressSizes) {
       finalQty = Number(data.sizeSQuantity || 0) +
                  Number(data.sizeMQuantity || 0) +
                  Number(data.sizeLQuantity || 0) +
-                 Number(data.sizeXLQuantity || 0);
+                 Number(data.sizeXLQuantity || 0) +
+                 Number(data.sizeXXLQuantity || 0);
+    } else if (data.hasShoeSizes) {
+      finalQty = Number(data.size7Quantity || 0) +
+                 Number(data.size8Quantity || 0) +
+                 Number(data.size9Quantity || 0) +
+                 Number(data.size10Quantity || 0) +
+                 Number(data.size11Quantity || 0) +
+                 Number(data.size12Quantity || 0) +
+                 Number(data.size13Quantity || 0);
     }
+
+    const payload = {
+      name: data.name?.trim(),
+      brand: data.brand?.trim(),
+      price: Number(data.price),
+      discountPercentage: Number(data.discountPercentage || 0),
+      description: desc,
+      quantity: finalQty,
+      categoryName: data.categoryName,
+      hasDressSizes: Boolean(data.hasDressSizes),
+      hasShoeSizes: Boolean(data.hasShoeSizes),
+      sizeSQuantity: data.hasDressSizes ? Number(data.sizeSQuantity || 0) : 0,
+      sizeMQuantity: data.hasDressSizes ? Number(data.sizeMQuantity || 0) : 0,
+      sizeLQuantity: data.hasDressSizes ? Number(data.sizeLQuantity || 0) : 0,
+      sizeXLQuantity: data.hasDressSizes ? Number(data.sizeXLQuantity || 0) : 0,
+      sizeXXLQuantity: data.hasDressSizes ? Number(data.sizeXXLQuantity || 0) : 0,
+      size7Quantity: data.hasShoeSizes ? Number(data.size7Quantity || 0) : 0,
+      size8Quantity: data.hasShoeSizes ? Number(data.size8Quantity || 0) : 0,
+      size9Quantity: data.hasShoeSizes ? Number(data.size9Quantity || 0) : 0,
+      size10Quantity: data.hasShoeSizes ? Number(data.size10Quantity || 0) : 0,
+      size11Quantity: data.hasShoeSizes ? Number(data.size11Quantity || 0) : 0,
+      size12Quantity: data.hasShoeSizes ? Number(data.size12Quantity || 0) : 0,
+      size13Quantity: data.hasShoeSizes ? Number(data.size13Quantity || 0) : 0,
+    };
 
     if (editingProduct) {
       updateProductMutation.mutate({
+        ...payload,
         id: editingProduct.id,
-        name: data.name?.trim(),
-        brand: data.brand?.trim(),
-        price: Number(data.price),
-        discountPercentage: Number(data.discountPercentage || 0),
-        description: desc,
-        quantity: finalQty,
         isActive: editingProduct.isActive,
         featured: Boolean(isFeatured || isTopsJackets),
-        categoryName: data.categoryName,
-        hasSizes: Boolean(data.hasSizes),
-        sizeSQuantity: data.hasSizes ? Number(data.sizeSQuantity || 0) : 0,
-        sizeMQuantity: data.hasSizes ? Number(data.sizeMQuantity || 0) : 0,
-        sizeLQuantity: data.hasSizes ? Number(data.sizeLQuantity || 0) : 0,
-        sizeXLQuantity: data.hasSizes ? Number(data.sizeXLQuantity || 0) : 0,
         images: editingProduct.images,
       });
     } else {
       addProductMutation.mutate({
-        name: data.name?.trim(),
-        brand: data.brand?.trim(),
-        price: Number(data.price),
-        discountPercentage: Number(data.discountPercentage || 0),
-        description: desc,
-        quantity: finalQty,
+        ...payload,
         isActive: true,
         featured: Boolean(isFeatured || isTopsJackets),
-        categoryName: data.categoryName,
-        hasSizes: Boolean(data.hasSizes),
-        sizeSQuantity: data.hasSizes ? Number(data.sizeSQuantity || 0) : 0,
-        sizeMQuantity: data.hasSizes ? Number(data.sizeMQuantity || 0) : 0,
-        sizeLQuantity: data.hasSizes ? Number(data.sizeLQuantity || 0) : 0,
-        sizeXLQuantity: data.hasSizes ? Number(data.sizeXLQuantity || 0) : 0,
       });
     }
   };
@@ -439,11 +469,20 @@ export default function AdminProducts() {
       description: "",
       quantity: 10,
       categoryName: "",
-      hasSizes: false,
+      hasDressSizes: false,
+      hasShoeSizes: false,
       sizeSQuantity: 0,
       sizeMQuantity: 0,
       sizeLQuantity: 0,
       sizeXLQuantity: 0,
+      sizeXXLQuantity: 0,
+      size7Quantity: 0,
+      size8Quantity: 0,
+      size9Quantity: 0,
+      size10Quantity: 0,
+      size11Quantity: 0,
+      size12Quantity: 0,
+      size13Quantity: 0,
     });
     setSelectedFiles([]);
     setFilePreviews([]);
@@ -479,11 +518,20 @@ export default function AdminProducts() {
       description: product.description || "",
       quantity: product.quantity,
       categoryName: product.category?.name || product.categoryName || "",
-      hasSizes: product.hasSizes || false,
+      hasDressSizes: product.hasDressSizes || false,
+      hasShoeSizes: product.hasShoeSizes || false,
       sizeSQuantity: product.sizeSQuantity || 0,
       sizeMQuantity: product.sizeMQuantity || 0,
       sizeLQuantity: product.sizeLQuantity || 0,
       sizeXLQuantity: product.sizeXLQuantity || 0,
+      sizeXXLQuantity: product.sizeXXLQuantity || 0,
+      size7Quantity: product.size7Quantity || 0,
+      size8Quantity: product.size8Quantity || 0,
+      size9Quantity: product.size9Quantity || 0,
+      size10Quantity: product.size10Quantity || 0,
+      size11Quantity: product.size11Quantity || 0,
+      size12Quantity: product.size12Quantity || 0,
+      size13Quantity: product.size13Quantity || 0,
     });
     
     // Pre-populate image previews if images exist
@@ -781,78 +829,134 @@ export default function AdminProducts() {
 
                 {/* Size Variants Toggle & Input Matrix */}
                 <div className="space-y-4 pt-2 border-t border-gray-100 mt-4">
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      id="hasSizes"
-                      className="w-4 h-4 text-black border-gray-300 focus:ring-black rounded-none cursor-pointer"
-                      {...register("hasSizes")}
-                    />
-                    <span className="text-xs uppercase tracking-wider font-semibold text-black">
-                      This product has size variants (S, M, L, XL)
-                    </span>
-                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        id="hasDressSizes"
+                        className="w-4 h-4 text-black border-gray-300 focus:ring-black rounded-none cursor-pointer"
+                        {...register("hasDressSizes")}
+                        onChange={(e) => {
+                          setValue("hasDressSizes", e.target.checked);
+                          if (e.target.checked) setValue("hasShoeSizes", false);
+                        }}
+                      />
+                      <span className="text-xs uppercase tracking-wider font-semibold text-black">
+                        Has Clothing/Dress Sizes (S, M, L, XL, XXL)
+                      </span>
+                    </label>
 
-                  {watch("hasSizes") ? (
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        id="hasShoeSizes"
+                        className="w-4 h-4 text-black border-gray-300 focus:ring-black rounded-none cursor-pointer"
+                        {...register("hasShoeSizes")}
+                        onChange={(e) => {
+                          setValue("hasShoeSizes", e.target.checked);
+                          if (e.target.checked) setValue("hasDressSizes", false);
+                        }}
+                      />
+                      <span className="text-xs uppercase tracking-wider font-semibold text-black">
+                        Has Shoe Sizes (7 - 13)
+                      </span>
+                    </label>
+                  </div>
+
+                  {watch("hasDressSizes") && (
                     <div className="space-y-2">
                       <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                        Quantity Per Size *
+                        Quantity Per Clothing Size *
                       </Label>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 border border-neutral-200 bg-neutral-50/50">
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 p-4 border border-neutral-200 bg-neutral-50/50">
                         {/* Size S */}
                         <div className="space-y-1">
-                          <Label htmlFor="sizeSQuantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">S Quantity</Label>
-                          <Input
-                            id="sizeSQuantity"
-                            type="number"
-                            min="0"
-                            placeholder="0"
-                            className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white"
-                            {...register("sizeSQuantity")}
-                          />
+                          <Label htmlFor="sizeSQuantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">S Qty</Label>
+                          <Input id="sizeSQuantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("sizeSQuantity")} />
                         </div>
                         {/* Size M */}
                         <div className="space-y-1">
-                          <Label htmlFor="sizeMQuantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">M Quantity</Label>
-                          <Input
-                            id="sizeMQuantity"
-                            type="number"
-                            min="0"
-                            placeholder="0"
-                            className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white"
-                            {...register("sizeMQuantity")}
-                          />
+                          <Label htmlFor="sizeMQuantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">M Qty</Label>
+                          <Input id="sizeMQuantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("sizeMQuantity")} />
                         </div>
                         {/* Size L */}
                         <div className="space-y-1">
-                          <Label htmlFor="sizeLQuantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">L Quantity</Label>
-                          <Input
-                            id="sizeLQuantity"
-                            type="number"
-                            min="0"
-                            placeholder="0"
-                            className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white"
-                            {...register("sizeLQuantity")}
-                          />
+                          <Label htmlFor="sizeLQuantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">L Qty</Label>
+                          <Input id="sizeLQuantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("sizeLQuantity")} />
                         </div>
                         {/* Size XL */}
                         <div className="space-y-1">
-                          <Label htmlFor="sizeXLQuantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">XL Quantity</Label>
-                          <Input
-                            id="sizeXLQuantity"
-                            type="number"
-                            min="0"
-                            placeholder="0"
-                            className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white"
-                            {...register("sizeXLQuantity")}
-                          />
+                          <Label htmlFor="sizeXLQuantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">XL Qty</Label>
+                          <Input id="sizeXLQuantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("sizeXLQuantity")} />
+                        </div>
+                        {/* Size XXL */}
+                        <div className="space-y-1">
+                          <Label htmlFor="sizeXXLQuantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">XXL Qty</Label>
+                          <Input id="sizeXXLQuantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("sizeXXLQuantity")} />
                         </div>
                       </div>
                       <p className="text-[10px] text-gray-500 font-mono">
-                        Calculated Total Stock: {Number(watch("sizeSQuantity") || 0) + Number(watch("sizeMQuantity") || 0) + Number(watch("sizeLQuantity") || 0) + Number(watch("sizeXLQuantity") || 0)} units
+                        Calculated Total Stock: {
+                          Number(watch("sizeSQuantity") || 0) +
+                          Number(watch("sizeMQuantity") || 0) +
+                          Number(watch("sizeLQuantity") || 0) +
+                          Number(watch("sizeXLQuantity") || 0) +
+                          Number(watch("sizeXXLQuantity") || 0)
+                        } units
                       </p>
                     </div>
-                  ) : (
+                  )}
+
+                  {watch("hasShoeSizes") && (
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                        Quantity Per Shoe Size *
+                      </Label>
+                      <div className="grid grid-cols-3 sm:grid-cols-7 gap-3 p-4 border border-neutral-200 bg-neutral-50/50">
+                        <div className="space-y-1">
+                          <Label htmlFor="size7Quantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">Size 7</Label>
+                          <Input id="size7Quantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("size7Quantity")} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="size8Quantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">Size 8</Label>
+                          <Input id="size8Quantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("size8Quantity")} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="size9Quantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">Size 9</Label>
+                          <Input id="size9Quantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("size9Quantity")} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="size10Quantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">Size 10</Label>
+                          <Input id="size10Quantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("size10Quantity")} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="size11Quantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">Size 11</Label>
+                          <Input id="size11Quantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("size11Quantity")} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="size12Quantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">Size 12</Label>
+                          <Input id="size12Quantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("size12Quantity")} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="size13Quantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">Size 13</Label>
+                          <Input id="size13Quantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("size13Quantity")} />
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-gray-500 font-mono">
+                        Calculated Total Stock: {
+                          Number(watch("size7Quantity") || 0) +
+                          Number(watch("size8Quantity") || 0) +
+                          Number(watch("size9Quantity") || 0) +
+                          Number(watch("size10Quantity") || 0) +
+                          Number(watch("size11Quantity") || 0) +
+                          Number(watch("size12Quantity") || 0) +
+                          Number(watch("size13Quantity") || 0)
+                        } units
+                      </p>
+                    </div>
+                  )}
+
+                  {!watch("hasDressSizes") && !watch("hasShoeSizes") && (
                     <div className="space-y-1.5 max-w-xs">
                       <Label htmlFor="quantity" className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
                         Total Stock Quantity *
@@ -1200,9 +1304,14 @@ export default function AdminProducts() {
                           <span className={`font-mono text-xs font-medium ${product.quantity < 5 ? "text-red-600 font-semibold" : "text-gray-700"}`}>
                             {product.quantity} units
                           </span>
-                          {product.hasSizes && (
+                          {product.hasDressSizes && (
                             <span className="text-[10px] text-gray-400 font-mono mt-0.5">
-                              S:{product.sizeSQuantity || 0} | M:{product.sizeMQuantity || 0} | L:{product.sizeLQuantity || 0} | XL:{product.sizeXLQuantity || 0}
+                              S:{product.sizeSQuantity || 0} | M:{product.sizeMQuantity || 0} | L:{product.sizeLQuantity || 0} | XL:{product.sizeXLQuantity || 0} | XXL:{product.sizeXXLQuantity || 0}
+                            </span>
+                          )}
+                          {product.hasShoeSizes && (
+                            <span className="text-[10px] text-gray-400 font-mono mt-0.5">
+                              7:{product.size7Quantity || 0} | 8:{product.size8Quantity || 0} | 9:{product.size9Quantity || 0} | 10:{product.size10Quantity || 0} | 11:{product.size11Quantity || 0} | 12:{product.size12Quantity || 0} | 13:{product.size13Quantity || 0}
                             </span>
                           )}
                         </div>
@@ -1212,7 +1321,7 @@ export default function AdminProducts() {
                     {/* Actions Column (with Update Stock & Delete buttons) */}
                     <td className="p-3.5 sm:p-4 text-right pr-6">
                       <div className="flex items-center justify-end gap-2">
-                        {!product.hasSizes && (
+                        {!product.hasDressSizes && !product.hasShoeSizes && (
                           <button
                             onClick={() => {
                               if (editingStockId === product.id) {

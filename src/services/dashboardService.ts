@@ -33,4 +33,21 @@ export const dashboardService = {
     const response = await api.get<number>("/admin/dashboard/sales/monthly");
     return response.data;
   },
+
+  getSalesTotalRevenue: async () => {
+    const response = await api.get<number>("/admin/dashboard/sales/total-revenue");
+    return response.data;
+  },
+
+  getOrdersByStatus: async (status: string) => {
+    const response = await api.get<any[]>(`/admin/dashboard/orders/status/${status}`);
+    return response.data;
+  },
+
+  getOrdersBetween: async (startDate: string, endDate: string) => {
+    const response = await api.get<any[]>(`/admin/dashboard/orders/between`, {
+      params: { startDate, endDate },
+    });
+    return response.data;
+  },
 };

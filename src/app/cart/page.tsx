@@ -11,16 +11,29 @@ export default function CartPage() {
   const { cart, updateQuantity, removeFromCart } = useCartStore();
 
   const getAvailableStock = (item: CartItem) => {
-    if (!item.product.hasSizes) {
-      return item.product.quantity || 0;
+    if (item.product.hasDressSizes) {
+      switch (item.size) {
+        case "S": return item.product.sizeSQuantity || 0;
+        case "M": return item.product.sizeMQuantity || 0;
+        case "L": return item.product.sizeLQuantity || 0;
+        case "XL": return item.product.sizeXLQuantity || 0;
+        case "XXL": return item.product.sizeXXLQuantity || 0;
+        default: return 0;
+      }
     }
-    switch (item.size) {
-      case "S": return item.product.sizeSQuantity || 0;
-      case "M": return item.product.sizeMQuantity || 0;
-      case "L": return item.product.sizeLQuantity || 0;
-      case "XL": return item.product.sizeXLQuantity || 0;
-      default: return 0;
+    if (item.product.hasShoeSizes) {
+      switch (item.size) {
+        case "7": return item.product.size7Quantity || 0;
+        case "8": return item.product.size8Quantity || 0;
+        case "9": return item.product.size9Quantity || 0;
+        case "10": return item.product.size10Quantity || 0;
+        case "11": return item.product.size11Quantity || 0;
+        case "12": return item.product.size12Quantity || 0;
+        case "13": return item.product.size13Quantity || 0;
+        default: return 0;
+      }
     }
+    return item.product.quantity || 0;
   };
 
   const handleQtyChange = (item: CartItem, newQty: number) => {
@@ -32,9 +45,6 @@ export default function CartPage() {
     }
     updateQuantity(item.id, newQty);
   };
-
-  const deliveryFee = 99;
-  const finalTotal = cart.totalPrice;
 
   if (cart.items.length === 0) {
     return (
@@ -141,14 +151,11 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between text-muted-foreground">
                 <span>Shipping</span>
-                <span className="font-mono">₹{deliveryFee}</span>
+                <span className="font-mono text-emerald-600 font-medium">Free</span>
               </div>
               <div className="flex justify-between text-foreground font-medium pt-4 border-t border-gray-200 text-base">
                 <span>Total</span>
-                <span className="font-mono flex items-center gap-2">
-                  <span className="line-through text-muted-foreground text-sm font-normal">₹{cart.totalPrice + 99}</span>
-                  <span>₹{finalTotal}</span>
-                </span>
+                <span className="font-mono">₹{cart.totalPrice.toLocaleString("en-IN")}</span>
               </div>
             </div>
 

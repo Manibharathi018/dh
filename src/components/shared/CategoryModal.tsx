@@ -28,6 +28,7 @@ export default function CategoryModal({
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [address, setAddress] = useState("");
   const [parentId, setParentId] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -48,9 +49,11 @@ export default function CategoryModal({
         setName(categoryToEdit.name || "");
         setDescription(categoryToEdit.description || "");
         setParentId(categoryToEdit.parentId || null);
+        setAddress(categoryToEdit.address || "");
       } else {
         setName("");
         setDescription("");
+        setAddress("");
         if (mode === "subcategory") {
           setParentId(defaultParentId || (mainCategories[0]?.id || null));
         } else {
@@ -100,6 +103,7 @@ export default function CategoryModal({
       name: name.trim(),
       description: description.trim() || `${mode === "subcategory" ? "Collection subcategory" : "Collection category"}`,
       imageUrl: categoryToEdit?.imageUrl || "",
+      address: address.trim(),
       active: categoryToEdit ? categoryToEdit.active : true,
       parentId: (mode === "subcategory" || (mode === "edit" && parentId)) && parentId ? parentId : undefined,
     };
@@ -185,6 +189,19 @@ export default function CategoryModal({
               placeholder={mode === "subcategory" ? "e.g. Shirts, Jeans, Shoes" : "e.g. Men, Women, Accessories"}
               value={name}
               onChange={(e) => setName(e.target.value)}
+              className="rounded-none border-gray-300 h-11 focus:border-black"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="modalAddressInput" className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+              Image URL (Cloudinary)
+            </Label>
+            <Input
+              id="modalAddressInput"
+              placeholder="e.g. https://res.cloudinary.com/..."
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
               className="rounded-none border-gray-300 h-11 focus:border-black"
             />
           </div>

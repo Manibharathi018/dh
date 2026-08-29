@@ -59,19 +59,21 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     queryFn: () => productService.getProductById(productId),
   });
 
+  const requiresSize = product ? (product.hasDressSizes || product.hasShoeSizes) : false;
+
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
       router.push("/login");
       return;
     }
     if (product) {
-      if (product.hasSizes && !selectedSize) {
+      if (requiresSize && !selectedSize) {
         setSizeError(true);
         return;
       }
       try {
         setIsAdding(true);
-        await addToCart(product, quantity, product.hasSizes ? selectedSize : undefined);
+        await addToCart(product, quantity, requiresSize ? selectedSize : undefined);
         toast.add({
           type: "success",
           title: "Product added to cart successfully!",
@@ -120,8 +122,31 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     );
   }
 
-  const finalPrice = product.price - (product.price * (product.discountPercentage / 100));
-  const sizes = ["S", "M", "L", "XL"];
+  const sizes = product.hasDressSizes
+    ? ["S", "M", "L", "XL", "XXL"]
+    : product.hasShoeSizes
+    ? ["7", "8", "9", "10", "11", "12", "13"]
+    : [];
+
+  const getStockForSize = (size: string): number => {
+    if (product.hasDressSizes) {
+      if (size === "S") return product.sizeSQuantity || 0;
+      if (size === "M") return product.sizeMQuantity || 0;
+      if (size === "L") return product.sizeLQuantity || 0;
+      if (size === "XL") return product.sizeXLQuantity || 0;
+      if (size === "XXL") return product.sizeXXLQuantity || 0;
+    }
+    if (product.hasShoeSizes) {
+      if (size === "7") return product.size7Quantity || 0;
+      if (size === "8") return product.size8Quantity || 0;
+      if (size === "9") return product.size9Quantity || 0;
+      if (size === "10") return product.size10Quantity || 0;
+      if (size === "11") return product.size11Quantity || 0;
+      if (size === "12") return product.size12Quantity || 0;
+      if (size === "13") return product.size13Quantity || 0;
+    }
+    return 0;
+  };
 
   return (
     <main className="bg-white min-h-screen py-16">
@@ -211,16 +236,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 {product.name}
               </h1>
               <div className="flex items-center gap-3 mt-4">
-                {product.discountPercentage > 0 ? (
-                  <>
-                    <span className="text-gray-400 line-through text-sm">Rs. {product.price.toFixed(2)}</span>
-                    <span className="text-2xl font-bold text-gray-900">Rs. {finalPrice.toFixed(2)}</span>
-                    <span className="bg-[#B91C1C] text-white text-[11px] font-bold px-1.5 py-0.5 rounded-sm">
-                      -{product.discountPercentage}%
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-2xl font-bold text-gray-900">Rs. {product.price.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-gray-900">Rs. {product.price.toFixed(2)}</span>
+                {product.originalPrice && product.originalPrice > 0 && (
+                  <span className="text-gray-400 line-through text-sm">Rs. {product.originalPrice.toFixed(2)}</span>
+                )}
+                {product.discountPercentage > 0 && (
+                  <span className="bg-[#B91C1C] text-white text-[11px] font-bold px-1.5 py-0.5 rounded-sm">
+                    -{product.discountPercentage}%
+                  </span>
                 )}
               </div>
             </div>
@@ -236,7 +259,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Size Selector */}
-            {product.hasSizes && (
+            {requiresSize && (
               <div>
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">
@@ -244,14 +267,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   </h3>
                   <span className="text-xs text-gray-400 border-b border-gray-200 pb-0.5 cursor-pointer hover:text-black transition-colors">Size Guide</span>
                 </div>
-                <div className="flex space-x-3">
+                <div className="flex flex-wrap gap-3">
                   {sizes.map((size) => {
-                    let sizeStock = 0;
-                    if (size === "S") sizeStock = product.sizeSQuantity || 0;
-                    else if (size === "M") sizeStock = product.sizeMQuantity || 0;
-                    else if (size === "L") sizeStock = product.sizeLQuantity || 0;
-                    else if (size === "XL") sizeStock = product.sizeXLQuantity || 0;
-
+                    const sizeStock = getStockForSize(size);
                     const isOutOfStock = sizeStock <= 0;
 
                     return (
@@ -278,12 +296,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 </div>
                 {selectedSize && (
                   <p className="text-xs text-emerald-700 font-mono mt-2">
-                    Size {selectedSize} stock: {
-                      selectedSize === "S" ? product.sizeSQuantity :
-                      selectedSize === "M" ? product.sizeMQuantity :
-                      selectedSize === "L" ? product.sizeLQuantity :
-                      selectedSize === "XL" ? product.sizeXLQuantity : 0
-                    } units available
+                    Size {selectedSize} stock: {getStockForSize(selectedSize)} units available
                   </p>
                 )}
                 {sizeError && (
@@ -310,22 +323,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   </span>
                   <button
                     onClick={() => setQuantity(prev => {
-                      const maxStock = product.hasSizes
-                        ? (selectedSize === "S" ? product.sizeSQuantity :
-                           selectedSize === "M" ? product.sizeMQuantity :
-                           selectedSize === "L" ? product.sizeLQuantity :
-                           selectedSize === "XL" ? product.sizeXLQuantity : 0)
-                        : product.quantity;
+                      const maxStock = requiresSize ? getStockForSize(selectedSize) : product.quantity;
                       return prev < (maxStock || 0) ? prev + 1 : prev;
                     })}
-                    disabled={quantity >= (
-                      product.hasSizes
-                        ? (selectedSize === "S" ? (product.sizeSQuantity || 0) :
-                           selectedSize === "M" ? (product.sizeMQuantity || 0) :
-                           selectedSize === "L" ? (product.sizeLQuantity || 0) :
-                           selectedSize === "XL" ? (product.sizeXLQuantity || 0) : 0)
-                        : (product.quantity || 0)
-                    )}
+                    disabled={quantity >= (requiresSize ? getStockForSize(selectedSize) : (product.quantity || 0))}
                     className="px-4 text-gray-500 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Plus className="w-4 h-4" />
@@ -335,16 +336,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <Button
                   onClick={handleAddToCart}
                   disabled={isAdding || (
-                    product.hasSizes
-                      ? !selectedSize || (
-                          selectedSize === "S" ? (product.sizeSQuantity || 0) === 0 :
-                          selectedSize === "M" ? (product.sizeMQuantity || 0) === 0 :
-                          selectedSize === "L" ? (product.sizeLQuantity || 0) === 0 :
-                          selectedSize === "XL" ? (product.sizeXLQuantity || 0) === 0 : true
-                        )
+                    requiresSize
+                      ? !selectedSize || getStockForSize(selectedSize) === 0
                       : (product.quantity || 0) === 0
                   )}
-                  className="flex-1 h-14 rounded-none bg-foreground text-background hover:bg-[var(--color-destructive)] text-sm tracking-widest uppercase transition-colors disabled:opacity-70 disabled:hover:bg-foreground"
+                  className="flex-1 h-14 rounded-none bg-foreground text-background hover:bg-[var(--color-destructive)] text-sm tracking-widest uppercase transition-colors disabled:opacity-70 disabled:hover:bg-foreground cursor-pointer"
                 >
                   {product.quantity === 0 ? "Out of Stock" : isAdding ? "Adding..." : "Add to Cart"}
                 </Button>

@@ -81,7 +81,7 @@ export default function WishlistPage() {
                         e.preventDefault(); 
                         e.stopPropagation(); 
                         if (!isAuthenticated) { router.push("/login"); return; }
-                        if (p.hasSizes) {
+                        if (p.hasDressSizes || p.hasShoeSizes) {
                           router.push(`/products/${p.id}`);
                           return;
                         }

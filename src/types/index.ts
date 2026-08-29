@@ -14,6 +14,7 @@ export interface Category {
   slug?: string;
   description: string;
   imageUrl: string;
+  address?: string;
   active: boolean;
   parentId?: number;
   parentName?: string;
@@ -24,6 +25,7 @@ export interface Product {
   name: string;
   price: number;
   discountPercentage: number;
+  originalPrice?: number;
   imageUrls: string[];
   images?: string;
   description: string;
@@ -32,11 +34,20 @@ export interface Product {
   featured: boolean;
   category: Category;
   brand?: string;
-  hasSizes?: boolean;
+  hasDressSizes?: boolean;
+  hasShoeSizes?: boolean;
   sizeSQuantity?: number;
   sizeMQuantity?: number;
   sizeLQuantity?: number;
   sizeXLQuantity?: number;
+  sizeXXLQuantity?: number;
+  size7Quantity?: number;
+  size8Quantity?: number;
+  size9Quantity?: number;
+  size10Quantity?: number;
+  size11Quantity?: number;
+  size12Quantity?: number;
+  size13Quantity?: number;
 }
 
 export interface Address {

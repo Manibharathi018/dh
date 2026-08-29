@@ -7,6 +7,7 @@ export interface CategoryDTO {
   slug?: string;
   description: string;
   imageUrl: string;
+  address?: string;
   active: boolean;
   parentId?: number;
   parentName?: string;
@@ -15,6 +16,23 @@ export interface CategoryDTO {
 export const categoryService = {
   getAllCategories: async () => {
     const response = await api.get<CategoryDTO[]>("/categories");
+    return response.data;
+  },
+
+  getCategoryById: async (id: number) => {
+    const response = await api.get<CategoryDTO>(`/categories/${id}`);
+    return response.data;
+  },
+
+  getCategoriesPaged: async (page = 0, size = 20) => {
+    const response = await api.get<any>(`/categories/page`, {
+      params: { page, size }
+    });
+    return response.data;
+  },
+
+  getActiveCategories: async () => {
+    const response = await api.get<CategoryDTO[]>("/categories/active");
     return response.data;
   },
 
@@ -30,5 +48,15 @@ export const categoryService = {
 
   deleteCategory: async (id: number) => {
     await api.delete(`/categories/${id}`);
+  },
+
+  activateCategory: async (id: number) => {
+    const response = await api.put<CategoryDTO>(`/categories/${id}/activate`);
+    return response.data;
+  },
+
+  deactivateCategory: async (id: number) => {
+    const response = await api.put<CategoryDTO>(`/categories/${id}/deactivate`);
+    return response.data;
   },
 };

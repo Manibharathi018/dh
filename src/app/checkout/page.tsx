@@ -289,14 +289,11 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Shipping</span>
-                  <span className="font-mono">₹99</span>
+                  <span className="font-mono text-emerald-600 font-medium">Free</span>
                 </div>
                 <div className="flex justify-between text-foreground font-medium pt-3 border-t border-gray-200 text-base">
                   <span>Total</span>
-                  <span className="font-mono flex items-center gap-2">
-                    <span className="line-through text-muted-foreground text-sm font-normal">₹{cart.totalPrice + 99}</span>
-                    <span>₹{cart.totalPrice}</span>
-                  </span>
+                  <span className="font-mono">₹{cart.totalPrice.toLocaleString("en-IN")}</span>
                 </div>
               </div>
 

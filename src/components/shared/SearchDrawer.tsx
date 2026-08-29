@@ -225,7 +225,6 @@ export default function SearchDrawer() {
                       {filteredProducts.slice(0, 10).map((product) => {
                         const img = getCloudinaryUrl(product.imageUrls?.[0]) || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800";
                         const discount = product.discountPercentage || 0;
-                        const originalPrice = discount > 0 ? Math.round((product.price || 0) / (1 - discount / 100)) : product.price;
 
                         return (
                           <div
@@ -263,15 +262,15 @@ export default function SearchDrawer() {
                                 <span className="text-sm font-bold font-mono text-gray-900">
                                   ₹{product.price}
                                 </span>
+                                {product.originalPrice && product.originalPrice > 0 && (
+                                  <span className="text-xs font-mono text-gray-400 line-through">
+                                    ₹{product.originalPrice}
+                                  </span>
+                                )}
                                 {discount > 0 && (
-                                  <>
-                                    <span className="text-xs font-mono text-gray-400 line-through">
-                                      ₹{originalPrice}
-                                    </span>
-                                    <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
-                                      {discount}% OFF
-                                    </span>
-                                  </>
+                                  <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
+                                    {discount}% OFF
+                                  </span>
                                 )}
                               </div>
                             </div>

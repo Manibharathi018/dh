@@ -115,12 +115,10 @@ function ProductsPageContent() {
 
   // Apply Sort
   productsToDisplay = [...productsToDisplay].sort((a, b) => {
-    const aPrice = (a.discountPercentage || 0) > 0 ? a.price - (a.price * ((a.discountPercentage || 0) / 100)) : a.price;
-    const bPrice = (b.discountPercentage || 0) > 0 ? b.price - (b.price * ((b.discountPercentage || 0) / 100)) : b.price;
     if (sortBy === "name,asc") return (a.name || "").localeCompare(b.name || "");
     if (sortBy === "name,desc") return (b.name || "").localeCompare(a.name || "");
-    if (sortBy === "price,asc") return aPrice - bPrice;
-    if (sortBy === "price,desc") return bPrice - aPrice;
+    if (sortBy === "price,asc") return a.price - b.price;
+    if (sortBy === "price,desc") return b.price - a.price;
     return 0;
   });
 
@@ -197,7 +195,6 @@ function ProductsPageContent() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-10 md:gap-x-8 md:gap-y-16">
                 {productsToDisplay.map((product, index) => {
                   const discount = product.discountPercentage || 0;
-                  const finalPrice = discount > 0 ? product.price - (product.price * (discount / 100)) : product.price;
                   const liked = product.id ? isLiked(userId, product.id) : false;
                   const isAdded = product.id ? addedIds.includes(product.id) : false;
 
@@ -249,11 +246,16 @@ function ProductsPageContent() {
                         </h3>
                         <div className="flex items-center space-x-2 mt-auto font-mono text-sm">
                           <span className="text-foreground font-medium">
-                            ₹{finalPrice.toFixed(0)}
+                            ₹{product.price.toLocaleString("en-IN")}
                           </span>
-                          {discount > 0 && (
+                          {product.originalPrice && product.originalPrice > 0 && (
                             <span className="text-muted-foreground line-through text-xs">
-                              ₹{product.price}
+                              ₹{product.originalPrice.toLocaleString("en-IN")}
+                            </span>
+                          )}
+                          {discount > 0 && (
+                            <span className="text-xs text-sale font-bold bg-sale/10 px-1.5 py-0.5 rounded">
+                              {discount}% off
                             </span>
                           )}
                         </div>

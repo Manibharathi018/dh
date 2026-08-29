@@ -17,9 +17,7 @@ function ProductGrid({ products }: { products: Product[] }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-10 md:gap-x-8 md:gap-y-16">
       {products.map((product: Product, index: number) => {
-        const finalPrice = product.discountPercentage > 0
-          ? product.price - (product.price * (product.discountPercentage / 100))
-          : product.price;
+        const discount = product.discountPercentage || 0;
 
         return (
           <Link
@@ -35,9 +33,9 @@ function ProductGrid({ products }: { products: Product[] }) {
                 fill
                 className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
               />
-              {product.discountPercentage > 0 && (
+              {discount > 0 && (
                 <span className="absolute top-2 left-2 md:top-4 md:left-4 bg-[var(--color-destructive)] text-white text-[10px] md:text-xs uppercase tracking-widest font-semibold px-2 py-1 md:px-3 md:py-1">
-                  -{product.discountPercentage}%
+                  -{discount}%
                 </span>
               )}
             </div>
@@ -51,21 +49,19 @@ function ProductGrid({ products }: { products: Product[] }) {
                 {product.name}
               </h3>
               <div className="flex flex-col mt-auto font-mono text-sm">
-                 {product.discountPercentage > 0 ? (
-                   <>
-                     <span className="text-muted-foreground line-through text-xs mb-0.5">
-                       Rs. {product.price.toFixed(2)}
-                     </span>
-                     <span className="text-foreground font-medium flex items-center gap-2">
-                       Rs. {finalPrice.toFixed(2)}
-                       <span className="text-white bg-[var(--color-destructive)] px-1.5 py-0.5 text-[10px] rounded-sm leading-none">-{product.discountPercentage}%</span>
-                     </span>
-                   </>
-                 ) : (
-                   <span className="text-foreground font-medium">
-                     Rs. {product.price.toFixed(2)}
-                   </span>
-                 )}
+                <span className="text-foreground font-medium">
+                  Rs. {product.price.toFixed(2)}
+                </span>
+                {product.originalPrice && product.originalPrice > 0 && (
+                  <span className="text-muted-foreground line-through text-xs mb-0.5">
+                    Rs. {product.originalPrice.toFixed(2)}
+                  </span>
+                )}
+                {discount > 0 && (
+                  <span className="text-white bg-[var(--color-destructive)] px-1.5 py-0.5 text-[10px] rounded-sm leading-none self-start mt-1">
+                    -{discount}% OFF
+                  </span>
+                )}
               </div>
             </div>
           </Link>

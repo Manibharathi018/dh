@@ -86,13 +86,18 @@ export default function CategoryPage({ params }: { params: Promise<{ name: strin
                   <h3 className="font-heading font-medium text-lg text-foreground mb-2 line-clamp-1 group-hover:text-[var(--color-destructive)] transition-colors">
                     {product.name}
                   </h3>
-                  <div className="flex items-center space-x-2 mt-auto font-mono">
+                  <div className="flex items-center space-x-2 mt-auto font-mono text-sm">
                     <span className="text-foreground font-medium">
-                      ₹{product.price - (product.price * (product.discountPercentage / 100))}
+                      ₹{product.price.toLocaleString("en-IN")}
                     </span>
+                    {product.originalPrice && product.originalPrice > 0 && (
+                      <span className="text-muted-foreground line-through text-xs">
+                        ₹{product.originalPrice.toLocaleString("en-IN")}
+                      </span>
+                    )}
                     {product.discountPercentage > 0 && (
-                      <span className="text-muted-foreground line-through text-sm">
-                        ₹{product.price}
+                      <span className="text-xs text-sale font-bold bg-sale/10 px-1.5 py-0.5 rounded">
+                        {product.discountPercentage}% Off
                       </span>
                     )}
                   </div>

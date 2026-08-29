@@ -14,7 +14,8 @@ import {
   User, 
   Menu, 
   X,
-  FolderTree
+  FolderTree,
+  Image as ImageIcon
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -38,7 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "Products", href: "/admin/products", icon: ShoppingBag },
     { name: "Categories", href: "/admin/categories", icon: FolderTree },
-    { name: "Inventory", href: "/admin/inventory", icon: Boxes },
+    { name: "Media", href: "/admin/media", icon: ImageIcon },
     { name: "Orders", href: "/admin/orders", icon: ClipboardList },
     { name: "Users", href: "/admin/users", icon: User },
   ];
