@@ -11,7 +11,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Minus, ArrowLeft, Shield, Truck, RotateCcw, ChevronLeft, ChevronRight, Heart } from "lucide-react";
+import { Plus, Minus, ArrowLeft, Shield, Truck, RotateCcw, ChevronLeft, ChevronRight, Heart, AlertCircle } from "lucide-react";
+import { toast } from "@/components/ui/toast";
 
 /**
  * Injects Cloudinary transformations (f_auto = auto format, q_auto = auto quality)
@@ -33,6 +34,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [sizeError, setSizeError] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const mainImageRef = useRef<HTMLDivElement>(null);
   const addToCart = useCartStore((state) => state.addToCart);
@@ -64,17 +66,25 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     }
     if (product) {
       if (product.hasSizes && !selectedSize) {
-        alert("Please select a size (S, M, L, XL) before adding to cart.");
+        setSizeError(true);
         return;
       }
       try {
         setIsAdding(true);
         await addToCart(product, quantity, product.hasSizes ? selectedSize : undefined);
-        alert("Product added to cart successfully!");
+        toast.add({
+          type: "success",
+          title: "Product added to cart successfully!",
+          timeout: 2500,
+        });
         router.push("/cart");
       } catch (err: any) {
         console.error("Failed to add to cart", err);
-        alert(err?.response?.data?.message || err?.message || "Failed to add item to cart. Please try again.");
+        toast.add({
+          type: "error",
+          title: err?.response?.data?.message || err?.message || "Failed to add item to cart. Please try again.",
+          timeout: 3000,
+        });
       } finally {
         setIsAdding(false);
       }
@@ -250,6 +260,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                         disabled={isOutOfStock}
                         onClick={() => {
                           setSelectedSize(size);
+                          setSizeError(false);
                           setQuantity(1); // Reset quantity when size changes
                         }}
                         className={`w-12 h-12 flex items-center justify-center text-sm font-medium border transition-all rounded-full ${
@@ -273,6 +284,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       selectedSize === "L" ? product.sizeLQuantity :
                       selectedSize === "XL" ? product.sizeXLQuantity : 0
                     } units available
+                  </p>
+                )}
+                {sizeError && (
+                  <p className="text-sm text-red-600 flex items-center gap-1.5 mt-2.5 font-medium">
+                    <AlertCircle className="w-4 h-4" />
+                    Please select a size to add to cart
                   </p>
                 )}
               </div>

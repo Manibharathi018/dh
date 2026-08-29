@@ -308,7 +308,7 @@ export default function CheckoutPage() {
                 {isProcessingPayment ? (
                   <Loader2 className="w-5 h-5 animate-spin mx-auto" />
                 ) : (
-                  `Proceed to Payment — ₹${cart.totalPrice}`
+                  "Proceed to Payment"
                 )}
               </Button>
             </div>
