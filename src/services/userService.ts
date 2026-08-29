@@ -19,4 +19,8 @@ export const userService = {
     const response = await api.put<UserDTO>(`/admin/users/${userId}/role?role=${role}`);
     return response.data;
   },
+
+  deleteUser: async (userId: number): Promise<void> => {
+    await api.delete(`/admin/users/${userId}`);
+  },
 };

@@ -49,11 +49,12 @@ export default function DashboardPage() {
   const [editingAddressId, setEditingAddressId] = useState<number | null>(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
 
-  // Confirm Modal state
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
     message: string;
+    confirmText?: string;
+    cancelText?: string;
     onConfirm: () => void;
     isDestructive?: boolean;
   }>({
@@ -102,16 +103,47 @@ export default function DashboardPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
     },
+    onError: (err: any) => {
+      alert(err?.response?.data?.message || err?.message || "Failed to cancel order");
+    }
   });
 
   const handleCancelOrder = (orderId: number) => {
     setConfirmModal({
       isOpen: true,
       title: "Cancel Order",
-      message: "Are you sure you want to cancel this order? This action cannot be undone.",
+      message: "Are you sure you want to cancel this order?",
+      confirmText: "Cancel Order",
+      cancelText: "Keep Order",
       isDestructive: true,
       onConfirm: () => {
         cancelOrderMutation.mutate(orderId);
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+      },
+    });
+  };
+
+  // Delete Order Mutation
+  const deleteOrderMutation = useMutation({
+    mutationFn: orderService.deleteOrder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+    onError: (err: any) => {
+      alert(err?.response?.data?.message || err?.message || "Failed to delete order");
+    }
+  });
+
+  const handleDeleteOrder = (orderId: number) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Order",
+      message: "Are you sure you want to delete this order?",
+      confirmText: "Delete Order",
+      cancelText: "Cancel",
+      isDestructive: true,
+      onConfirm: () => {
+        deleteOrderMutation.mutate(orderId);
         setConfirmModal((prev) => ({ ...prev, isOpen: false }));
       },
     });
@@ -320,8 +352,8 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Actions */}
-                        {order.orderStatus === "PENDING" && (
-                          <div className="flex justify-end pt-3 border-t border-gray-100">
+                        <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
+                          {order.orderStatus === "PENDING" && (
                             <Button
                               variant="outline"
                               onClick={() => handleCancelOrder(order.id)}
@@ -334,8 +366,20 @@ export default function DashboardPage() {
                                 "Cancel Order"
                               )}
                             </Button>
-                          </div>
-                        )}
+                          )}
+                          <Button
+                            variant="outline"
+                            onClick={() => handleDeleteOrder(order.id)}
+                            className="rounded-none border-gray-250 text-gray-600 hover:bg-gray-50 text-xs tracking-wider uppercase h-10 px-5 cursor-pointer transition-colors"
+                            disabled={deleteOrderMutation.isPending}
+                          >
+                            {deleteOrderMutation.isPending ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              "Delete Order"
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -608,6 +652,8 @@ export default function DashboardPage() {
         isOpen={confirmModal.isOpen}
         title={confirmModal.title}
         message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
         onConfirm={confirmModal.onConfirm}
         onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
         isDestructive={confirmModal.isDestructive}

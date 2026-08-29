@@ -6,6 +6,7 @@ import { orderService } from "@/services/orderService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Search, X, Loader2, Calendar, DollarSign, ShoppingBag, Eye, User, MapPin } from "lucide-react";
+import ConfirmModal from "@/components/shared/ConfirmModal";
 
 export default function AdminOrders() {
   const queryClient = useQueryClient();
@@ -14,6 +15,22 @@ export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Confirm Modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    isDestructive?: boolean;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   const { data: ordersData, isLoading } = useQuery({
     queryKey: ["admin-orders", page],
@@ -45,6 +62,78 @@ export default function AdminOrders() {
 
   const handleStatusChange = (orderId: number, status: string) => {
     updateStatusMutation.mutate({ id: orderId, status });
+  };
+
+  const refundMutation = useMutation({
+    mutationFn: (orderId: number) => orderService.refundOrder(orderId),
+    onSuccess: (data, orderId) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      setToast({
+        type: "success",
+        message: `Refund successful for order #${orderId}`,
+      });
+      setTimeout(() => setToast(null), 3500);
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder((prev: any) => ({ ...prev, orderStatus: "REFUNDED" }));
+      }
+    },
+    onError: (err: any) => {
+      setToast({
+        type: "error",
+        message: err?.response?.data?.message || err?.message || "Refund failed",
+      });
+      setTimeout(() => setToast(null), 3500);
+    },
+  });
+
+  const deleteOrderMutation = useMutation({
+    mutationFn: (orderId: number) => orderService.deleteOrder(orderId),
+    onSuccess: (data, orderId) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      setToast({
+        type: "success",
+        message: `Order #${orderId} deleted successfully`,
+      });
+      setTimeout(() => setToast(null), 3500);
+      setSelectedOrder(null);
+    },
+    onError: (err: any) => {
+      setToast({
+        type: "error",
+        message: err?.response?.data?.message || err?.message || "Failed to delete order",
+      });
+      setTimeout(() => setToast(null), 3500);
+    },
+  });
+
+  const handleRefundClick = (orderId: number) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Refund Order",
+      message: "Are you sure you want to refund this order?",
+      confirmText: "Refund",
+      cancelText: "Cancel",
+      isDestructive: true,
+      onConfirm: () => {
+        refundMutation.mutate(orderId);
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+      },
+    });
+  };
+
+  const handleDeleteOrderClick = (orderId: number) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Order",
+      message: "Are you sure you want to delete this order?",
+      confirmText: "Delete Order",
+      cancelText: "Cancel",
+      isDestructive: true,
+      onConfirm: () => {
+        deleteOrderMutation.mutate(orderId);
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+      },
+    });
   };
 
   const orders = ordersData?.content || [];
@@ -201,18 +290,36 @@ export default function AdminOrders() {
                       </span>
                     </td>
                     <td className="p-3.5 sm:p-4 text-right">
-                      <div className="flex items-center justify-end gap-3.5">
+                      <div className="flex items-center justify-end gap-2 sm:gap-3 flex-wrap">
                         <button
                           onClick={() => setSelectedOrder(order)}
-                          className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-black bg-gray-100 hover:bg-black hover:text-white px-2.5 py-1.5 rounded-none transition-all cursor-pointer shadow-2xs"
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-black bg-gray-100 hover:bg-black hover:text-white px-2.5 py-1.5 rounded-none transition-all cursor-pointer shadow-2xs shrink-0"
                         >
                           <Eye className="w-3.5 h-3.5" /> Details
+                        </button>
+                        {order.orderStatus !== "REFUNDED" && (
+                          <button
+                            onClick={() => handleRefundClick(order.id)}
+                            disabled={refundMutation.isPending}
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-amber-600 bg-amber-50 hover:bg-amber-600 hover:text-white px-2.5 py-1.5 rounded-none transition-all cursor-pointer shadow-2xs disabled:opacity-50 shrink-0"
+                          >
+                            {refundMutation.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
+                            Refund
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDeleteOrderClick(order.id)}
+                          disabled={deleteOrderMutation.isPending}
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-red-600 bg-red-50 hover:bg-red-600 hover:text-white px-2.5 py-1.5 rounded-none transition-all cursor-pointer shadow-2xs disabled:opacity-50 shrink-0"
+                        >
+                          {deleteOrderMutation.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
+                          Delete
                         </button>
                         <select
                           value={order.orderStatus}
                           onChange={(e) => handleStatusChange(order.id, e.target.value)}
                           disabled={updateStatusMutation.isPending}
-                          className="text-xs bg-white border border-gray-200 rounded-none px-2 py-1 focus:ring-0 focus:border-black cursor-pointer text-black font-medium"
+                          className="text-xs bg-white border border-gray-200 rounded-none px-2 py-1 focus:ring-0 focus:border-black cursor-pointer text-black font-medium shrink-0"
                         >
                           {statuses.map((status) => (
                             <option key={status} value={status}>{status}</option>
@@ -415,6 +522,24 @@ export default function AdminOrders() {
 
             {/* Action Buttons */}
             <div className="flex items-center justify-end gap-3 mt-8 pt-4 border-t border-neutral-100">
+              {selectedOrder.orderStatus !== "REFUNDED" && (
+                <Button
+                  onClick={() => handleRefundClick(selectedOrder.id)}
+                  disabled={refundMutation.isPending}
+                  className="rounded-none bg-amber-600 hover:bg-amber-700 text-white text-xs tracking-wider uppercase px-6 h-11 font-semibold cursor-pointer disabled:opacity-50"
+                >
+                  {refundMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-1.5" />}
+                  Refund Order
+                </Button>
+              )}
+              <Button
+                onClick={() => handleDeleteOrderClick(selectedOrder.id)}
+                disabled={deleteOrderMutation.isPending}
+                className="rounded-none bg-red-600 hover:bg-red-700 text-white text-xs tracking-wider uppercase px-6 h-11 font-semibold cursor-pointer disabled:opacity-50"
+              >
+                {deleteOrderMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-1.5" />}
+                Delete Order
+              </Button>
               <Button
                 onClick={() => setSelectedOrder(null)}
                 className="rounded-none bg-black text-white hover:bg-neutral-800 text-xs tracking-wider uppercase px-6 h-11 font-semibold cursor-pointer"
@@ -425,6 +550,18 @@ export default function AdminOrders() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+        isDestructive={confirmModal.isDestructive}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

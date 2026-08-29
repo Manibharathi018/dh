@@ -67,11 +67,7 @@ export default function Footer() {
               SERVICE
             </h3>
             <ul className="space-y-3.5 text-[13px] text-gray-700">
-              <li>
-                <Link href="/faq" className="hover:text-black transition-colors">
-                  FAQ
-                </Link>
-              </li>
+
               <li>
                 <Link href="/contact" className="hover:text-black transition-colors">
                   Contact
@@ -222,11 +218,7 @@ export default function Footer() {
             </button>
             {openSections.service && (
               <ul className="pt-3 pb-2 space-y-2.5 text-xs text-gray-600 animate-in fade-in">
-                <li>
-                  <Link href="/faq" className="hover:text-black transition-colors block py-1">
-                    FAQ
-                  </Link>
-                </li>
+
                 <li>
                   <Link href="/contact" className="hover:text-black transition-colors block py-1">
                     Contact

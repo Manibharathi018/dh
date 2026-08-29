@@ -20,6 +20,9 @@ export default function AdminUsers() {
     isOpen: boolean;
     title: string;
     message: string;
+    confirmText?: string;
+    cancelText?: string;
+    isDestructive?: boolean;
     onConfirm: () => void;
   }>({
     isOpen: false,
@@ -63,8 +66,44 @@ export default function AdminUsers() {
       message: isPromoting 
         ? `Are you sure you want to promote ${user.name} (${user.userName}) to ADMIN? This will grant them full administrative privileges.`
         : `Are you sure you want to remove ADMIN privileges from ${user.name} (${user.userName})?`,
+      confirmText: "Confirm",
+      cancelText: "Cancel",
       onConfirm: () => {
         updateRoleMutation.mutate({ userId: user.id, role: targetRole });
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+      },
+    });
+  };
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: number) => userService.deleteUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      setToast({
+        type: "success",
+        message: "Successfully deleted user account.",
+      });
+      setTimeout(() => setToast(null), 3500);
+    },
+    onError: (err: any) => {
+      setToast({
+        type: "error",
+        message: err?.response?.data?.message || err?.message || "Failed to delete user",
+      });
+      setTimeout(() => setToast(null), 3500);
+    },
+  });
+
+  const handleDeleteUserClick = (user: UserDTO) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete User",
+      message: "Are you sure you want to delete this user?",
+      confirmText: "Delete User",
+      cancelText: "Cancel",
+      isDestructive: true,
+      onConfirm: () => {
+        deleteUserMutation.mutate(user.id);
         setConfirmModal((prev) => ({ ...prev, isOpen: false }));
       },
     });
@@ -198,24 +237,38 @@ export default function AdminUsers() {
                         </span>
                       </td>
                       <td className="p-3.5 sm:p-4 text-right">
-                        <Button
-                          variant="outline"
-                          onClick={() => handleRoleChangeClick(u)}
-                          disabled={isSelf || updateRoleMutation.isPending}
-                          className={`rounded-none text-[10px] uppercase tracking-wider h-9 px-3.5 font-semibold cursor-pointer ${
-                            isSelf 
-                              ? "opacity-50 cursor-not-allowed border-gray-150 text-gray-300"
-                              : u.role === "ADMIN"
-                              ? "border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                              : "border-black text-black hover:bg-black hover:text-white"
-                          }`}
-                          title={isSelf ? "You cannot modify your own administrative role." : ""}
-                        >
-                          {updateRoleMutation.isPending && (
-                            <Loader2 className="w-3 h-3 animate-spin mr-1.5" />
-                          )}
-                          {u.role === "ADMIN" ? "Demote" : "Promote"}
-                        </Button>
+                        <div className="flex items-center justify-end gap-2 flex-wrap">
+                          <Button
+                            variant="outline"
+                            onClick={() => handleRoleChangeClick(u)}
+                            disabled={isSelf || updateRoleMutation.isPending}
+                            className={`rounded-none text-[10px] uppercase tracking-wider h-9 px-3.5 font-semibold cursor-pointer ${
+                              isSelf 
+                                ? "opacity-50 cursor-not-allowed border-gray-150 text-gray-300"
+                                : u.role === "ADMIN"
+                                ? "border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                : "border-black text-black hover:bg-black hover:text-white"
+                            }`}
+                            title={isSelf ? "You cannot modify your own administrative role." : ""}
+                          >
+                            {updateRoleMutation.isPending && (
+                              <Loader2 className="w-3 h-3 animate-spin mr-1.5" />
+                            )}
+                            {u.role === "ADMIN" ? "Demote" : "Promote"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleDeleteUserClick(u)}
+                            disabled={isSelf || deleteUserMutation.isPending}
+                            className="rounded-none text-[10px] uppercase tracking-wider h-9 px-3.5 font-semibold cursor-pointer border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                            title={isSelf ? "You cannot delete your own account." : ""}
+                          >
+                            {deleteUserMutation.isPending && (
+                              <Loader2 className="w-3 h-3 animate-spin mr-1.5" />
+                            )}
+                            Delete
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -231,6 +284,9 @@ export default function AdminUsers() {
         isOpen={confirmModal.isOpen}
         title={confirmModal.title}
         message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+        isDestructive={confirmModal.isDestructive}
         onConfirm={confirmModal.onConfirm}
         onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
       />

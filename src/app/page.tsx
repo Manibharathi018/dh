@@ -194,60 +194,7 @@ function FeaturedProducts() {
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════════
-   FLASH DEALS
-══════════════════════════════════════════════════════════════════════ */
-function FlashDeals() {
-  const deals = [
-    { 
-      title: "Weekend Steal", 
-      price: "Under ₹499", 
-      tag: "Shirts & Tees", 
-      tone: "bg-ink text-white",
-      href: "/men?maxPrice=500" 
-    },
-    { 
-      title: "Sneaker Fest", 
-      price: "Flat 40% Off", 
-      tag: "Puma · Adidas · Lotto", 
-      tone: "bg-sale text-white",
-      href: "/footwear?minDiscount=40" 
-    },
-    { 
-      title: "Ethnic Edit", 
-      price: "Flat 50% Off", 
-      tag: "Kurtis & Sets", 
-      tone: "bg-surface text-ink border border-hairline",
-      href: "/women?minDiscount=50" 
-    },
-  ];
-  return (
-    <section className="py-16 md:py-24">
-      <div className="container-editorial">
-        <div className="mb-10">
-          <p className="eyebrow mb-3">Ends This Sunday</p>
-          <h2 className="font-display text-4xl md:text-5xl">Flash Deals</h2>
-        </div>
-        <div className="flex md:grid md:grid-cols-3 overflow-x-auto md:overflow-visible snap-x snap-mandatory scrollbar-none gap-4 md:gap-6 pb-4 md:pb-0 -mx-5 px-5 md:mx-0 md:px-0">
-          {deals.map((d, i) => (
-            <Link
-              key={i}
-              href={d.href}
-              className={`${d.tone} rounded-sm p-8 md:p-10 hover-lift block group shrink-0 snap-center w-[85vw] md:w-auto cursor-pointer`}
-            >
-              <p className="eyebrow opacity-80">{d.tag}</p>
-              <h3 className="font-display text-3xl md:text-4xl mt-4">{d.title}</h3>
-              <p className="mt-6 text-lg font-medium">{d.price}</p>
-              <div className="mt-10 inline-flex items-center gap-2 text-sm tracking-widest uppercase story-link">
-                Shop Now <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
+
 
 /* ══════════════════════════════════════════════════════════════════════
    SHOP BY DEPARTMENT
@@ -320,55 +267,21 @@ function Departments() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {liveCategories.map((c, i) => {
-            const subcats = allCategories.filter(sub => sub.parentId === c.id);
-            const targetImg = getCloudinaryUrl(c.imageUrl) || c.imageUrl || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop";
             const targetHref = `/category/${encodeURIComponent(c.name)}`;
 
             return (
-              <div
+              <Link
                 key={c.id ?? c.name}
-                className="flex flex-col bg-white border border-gray-150 rounded-sm p-4 hover:shadow-md transition-shadow animate-fade-up"
+                href={targetHref}
+                className="group block animate-fade-up cursor-pointer"
                 style={{ animationDelay: `${i * 0.08}s` }}
               >
-                {/* Image Link */}
-                <Link href={targetHref} className="group relative block aspect-[3/4] overflow-hidden rounded-sm bg-neutral-100 mb-4">
-                  <Image
-                    src={targetImg}
-                    alt={c.name}
-                    fill
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
-                </Link>
-
-                {/* Root Category Name */}
-                <Link href={targetHref} className="hover:text-amber-600 transition-colors">
-                  <h3 className="font-display text-2xl tracking-wide uppercase font-medium mb-3">
+                <div className="flex items-center justify-center h-40 bg-white border border-gray-150 hover:border-black transition-all hover:bg-neutral-50 p-6 text-center shadow-xs">
+                  <h3 className="font-display text-2xl tracking-[0.2em] uppercase font-medium text-black group-hover:text-amber-600 transition-colors">
                     {c.name}
                   </h3>
-                </Link>
-
-                {/* Subcategories List */}
-                <div className="flex-1">
-                  {subcats.length > 0 ? (
-                    <ul className="space-y-2 border-t border-gray-100 pt-3">
-                      {subcats.map(sub => (
-                        <li key={sub.id}>
-                          <Link
-                            href={`/category/${encodeURIComponent(sub.name)}`}
-                            className="text-sm text-gray-650 hover:text-amber-600 font-medium transition-colors flex items-center group/item"
-                          >
-                            <ChevronRight className="w-3.5 h-3.5 mr-1 text-gray-400 group-hover/item:text-amber-600 transition-colors" />
-                            {sub.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-xs text-gray-400 italic mt-2">No subcategories available</p>
-                  )}
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
@@ -1301,7 +1214,6 @@ export default function Home() {
       </section>
 
       {/* ── SECTIONS ─────────────────────────────────────────── */}
-      <FlashDeals />
       <Departments />
       <FeaturedProducts />
       <RecentlyAdded />

@@ -99,7 +99,7 @@ export default function CategoryModal({
     const payload: CategoryDTO = {
       name: name.trim(),
       description: description.trim() || `${mode === "subcategory" ? "Collection subcategory" : "Collection category"}`,
-      imageUrl: categoryToEdit?.imageUrl || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop",
+      imageUrl: categoryToEdit?.imageUrl || "",
       active: categoryToEdit ? categoryToEdit.active : true,
       parentId: (mode === "subcategory" || (mode === "edit" && parentId)) && parentId ? parentId : undefined,
     };

@@ -78,4 +78,14 @@ export const orderService = {
     });
     return response.data;
   },
+
+  deleteOrder: async (id: number) => {
+    const response = await api.delete(`/orders/${id}`);
+    return response.data;
+  },
+
+  refundOrder: async (orderId: number) => {
+    const response = await api.post(`/admin/orders/${orderId}/refund`);
+    return response.data;
+  },
 };

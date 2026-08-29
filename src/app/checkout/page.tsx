@@ -289,11 +289,14 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Shipping</span>
-                  <span className="font-mono">FREE</span>
+                  <span className="font-mono">₹99</span>
                 </div>
                 <div className="flex justify-between text-foreground font-medium pt-3 border-t border-gray-200 text-base">
                   <span>Total</span>
-                  <span className="font-mono">₹{cart.totalPrice}</span>
+                  <span className="font-mono flex items-center gap-2">
+                    <span className="line-through text-muted-foreground text-sm font-normal">₹{cart.totalPrice + 99}</span>
+                    <span>₹{cart.totalPrice}</span>
+                  </span>
                 </div>
               </div>
 
@@ -302,7 +305,11 @@ export default function CheckoutPage() {
                 disabled={!selectedAddressId || isProcessingPayment}
                 className="w-full h-14 rounded-none bg-foreground text-background hover:bg-[var(--color-destructive)] text-sm tracking-widest uppercase transition-colors"
               >
-                {isProcessingPayment ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Place Order & Pay"}
+                {isProcessingPayment ? (
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                ) : (
+                  `Proceed to Payment — ₹${cart.totalPrice}`
+                )}
               </Button>
             </div>
           </div>
