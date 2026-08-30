@@ -215,7 +215,7 @@ function ProductsPageContent() {
                         />
                         {discount > 0 && (
                           <span className="absolute top-2 left-2 md:top-4 md:left-4 bg-[var(--color-destructive)] text-white text-[10px] md:text-xs uppercase tracking-widest font-semibold px-2 py-1 md:px-3 md:py-1">
-                            -{discount}%
+                            {discount}% off
                           </span>
                         )}
                         <button
@@ -246,17 +246,17 @@ function ProductsPageContent() {
                         </h3>
                         <div className="flex items-center space-x-2 mt-auto font-mono text-sm">
                           <span className="text-foreground font-medium">
-                            ₹{product.price.toLocaleString("en-IN")}
+                            ₹{Math.round(product.price).toLocaleString("en-IN")}
                           </span>
-                          {product.originalPrice && product.originalPrice > 0 && (
-                            <span className="text-muted-foreground line-through text-xs">
-                              ₹{product.originalPrice.toLocaleString("en-IN")}
-                            </span>
-                          )}
                           {discount > 0 && (
-                            <span className="text-xs text-sale font-bold bg-sale/10 px-1.5 py-0.5 rounded">
-                              {discount}% off
-                            </span>
+                            <>
+                              <span className="text-xs text-sale font-bold bg-sale/10 px-1.5 py-0.5 rounded">
+                                {discount}% off
+                              </span>
+                              <span className="text-muted-foreground line-through text-xs font-normal">
+                                ₹{Math.round(product.price / (1 - Math.min(99.9, discount) / 100)).toLocaleString("en-IN")}
+                              </span>
+                            </>
                           )}
                         </div>
                       </div>

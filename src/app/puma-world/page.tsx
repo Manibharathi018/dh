@@ -73,7 +73,7 @@ export default function PumaWorldPage() {
                   />
                   {product.discountPercentage > 0 && (
                     <span className="absolute top-4 left-4 bg-[var(--color-destructive)] text-white text-xs uppercase tracking-widest font-semibold px-3 py-1">
-                      -{product.discountPercentage}% Off
+                      {product.discountPercentage}% off
                     </span>
                   )}
                 </div>
@@ -83,14 +83,19 @@ export default function PumaWorldPage() {
                   <h3 className="font-heading font-medium text-lg text-foreground mb-2 line-clamp-1 group-hover:text-[var(--color-destructive)] transition-colors">
                     {product.name}
                   </h3>
-                  <div className="flex items-center space-x-2 mt-auto font-mono">
+                  <div className="flex items-center space-x-2 mt-auto font-mono text-sm">
                     <span className="text-foreground font-medium">
-                      ₹{product.price - (product.price * (product.discountPercentage / 100))}
+                      ₹{Math.round(product.price).toLocaleString("en-IN")}
                     </span>
                     {product.discountPercentage > 0 && (
-                      <span className="text-muted-foreground line-through text-sm">
-                        ₹{product.price}
-                      </span>
+                      <>
+                        <span className="text-xs text-sale font-bold bg-sale/10 px-1.5 py-0.5 rounded">
+                          {product.discountPercentage}% off
+                        </span>
+                        <span className="text-muted-foreground line-through text-xs font-normal">
+                          ₹{Math.round(product.price / (1 - Math.min(99.9, product.discountPercentage) / 100)).toLocaleString("en-IN")}
+                        </span>
+                      </>
                     )}
                   </div>
                 </div>

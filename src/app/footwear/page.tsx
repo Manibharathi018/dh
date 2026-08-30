@@ -35,7 +35,7 @@ function ProductGrid({ products }: { products: Product[] }) {
               />
               {discount > 0 && (
                 <span className="absolute top-2 left-2 md:top-4 md:left-4 bg-[var(--color-destructive)] text-white text-[10px] md:text-xs uppercase tracking-widest font-semibold px-2 py-1 md:px-3 md:py-1">
-                  -{discount}%
+                  {discount}% off
                 </span>
               )}
             </div>
@@ -48,19 +48,19 @@ function ProductGrid({ products }: { products: Product[] }) {
               <h3 className="font-heading font-medium text-sm md:text-base text-foreground mb-1 line-clamp-2 group-hover:text-[var(--color-destructive)] transition-colors">
                 {product.name}
               </h3>
-              <div className="flex flex-col mt-auto font-mono text-sm">
+              <div className="flex items-center space-x-2 mt-auto font-mono text-sm">
                 <span className="text-foreground font-medium">
-                  Rs. {product.price.toFixed(2)}
+                  ₹{Math.round(product.price).toLocaleString("en-IN")}
                 </span>
-                {product.originalPrice && product.originalPrice > 0 && (
-                  <span className="text-muted-foreground line-through text-xs mb-0.5">
-                    Rs. {product.originalPrice.toFixed(2)}
-                  </span>
-                )}
                 {discount > 0 && (
-                  <span className="text-white bg-[var(--color-destructive)] px-1.5 py-0.5 text-[10px] rounded-sm leading-none self-start mt-1">
-                    -{discount}% OFF
-                  </span>
+                  <>
+                    <span className="text-white bg-[var(--color-destructive)] px-1.5 py-0.5 text-[10px] rounded-sm leading-none">
+                      {discount}% off
+                    </span>
+                    <span className="text-muted-foreground line-through text-xs font-normal">
+                      ₹{Math.round(product.price / (1 - Math.min(99.9, discount) / 100)).toLocaleString("en-IN")}
+                    </span>
+                  </>
                 )}
               </div>
             </div>

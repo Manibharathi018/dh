@@ -236,19 +236,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 {product.name}
               </h1>
               <div className="flex items-center gap-3 mt-4">
-                <span className="text-2xl font-bold text-gray-900">Rs. {product.price.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-gray-900">
+                  ₹{Math.round(product.price).toLocaleString("en-IN")}
+                </span>
                 {product.discountPercentage > 0 && (
-                  <span className="text-2xl font-bold text-red-600">
-                    Rs. {(product.price - (product.price * product.discountPercentage / 100)).toFixed(2)}
-                  </span>
-                )}
-                {product.originalPrice && product.originalPrice > 0 && (
-                  <span className="text-gray-400 line-through text-sm">Rs. {product.originalPrice.toFixed(2)}</span>
-                )}
-                {product.discountPercentage > 0 && (
-                  <span className="bg-[#B91C1C] text-white text-[11px] font-bold px-1.5 py-0.5 rounded-sm">
-                    -{product.discountPercentage}%
-                  </span>
+                  <>
+                    <span className="bg-[#B91C1C] text-white text-[11px] font-bold px-1.5 py-0.5 rounded-sm">
+                      {product.discountPercentage}% off
+                    </span>
+                    <span className="text-muted-foreground line-through text-sm font-normal">
+                      ₹{Math.round(product.price / (1 - Math.min(99.9, product.discountPercentage) / 100)).toLocaleString("en-IN")}
+                    </span>
+                  </>
                 )}
               </div>
             </div>
