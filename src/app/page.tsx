@@ -454,6 +454,7 @@ function ManagedVideo({ src, isActive, onEnded, className }: VideoCardProps) {
       src={src}
       muted
       playsInline
+      preload={isActive ? "auto" : "none"}
       onEnded={onEnded}
       className={className}
     />
@@ -464,12 +465,17 @@ function ReviewVideosSection() {
   const [videos, setVideos] = useState<MediaContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [transitionEnabled, setTransitionEnabled] = useState(true);
 
   useEffect(() => {
     async function loadVideos() {
       try {
         const res = await mediaService.getReviewVideos();
-        setVideos(res || []);
+        const list = res || [];
+        setVideos(list);
+        if (list.length > 0) {
+          setActiveIndex(list.length * 25);
+        }
       } catch (err) {
         console.error("Failed to load review videos:", err);
       } finally {
@@ -481,8 +487,24 @@ function ReviewVideosSection() {
 
   if (loading || videos.length === 0) return null;
 
+  const repeatedVideos = Array.from({ length: 50 }).flatMap(() => videos);
+
   const handleEnded = () => {
-    setActiveIndex((prev) => (prev + 1) % videos.length);
+    setActiveIndex((prev) => prev + 1);
+  };
+
+  const handleTransitionEnd = () => {
+    const len = videos.length;
+    const minSafe = len * 15;
+    const maxSafe = len * 35;
+    if (activeIndex < minSafe || activeIndex > maxSafe) {
+      setTransitionEnabled(false);
+      const currentOffset = activeIndex % len;
+      setActiveIndex(len * 25 + currentOffset);
+      setTimeout(() => {
+        setTransitionEnabled(true);
+      }, 50);
+    }
   };
 
   return (
@@ -493,16 +515,18 @@ function ReviewVideosSection() {
       </div>
       <div className="relative w-full overflow-hidden py-4">
         <div
-          className="flex gap-6 transition-transform duration-700 ease-in-out"
+          onTransitionEnd={handleTransitionEnd}
+          className="flex gap-6"
           style={{
-            transform: `translate3d(calc(50% - (var(--card-width) / 2) - (${activeIndex} * (var(--card-width) + 24px))), 0, 0)`,
+            transition: transitionEnabled ? "transform 700ms ease-in-out" : "none",
+            transform: `translate3d(calc(50vw - (var(--card-width) / 2) - (${activeIndex} * (var(--card-width) + 24px))), 0, 0)`,
           }}
         >
-          {videos.map((vid, idx) => {
+          {repeatedVideos.map((vid, idx) => {
             const isActive = idx === activeIndex;
             return (
               <div
-                key={vid.id}
+                key={`${vid.id}-${idx}`}
                 className={`relative review-video-card aspect-[3/4] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 ${
                   isActive ? "opacity-100 scale-100" : "opacity-40 scale-95"
                 }`}
@@ -526,12 +550,17 @@ function ExperienceCollectionVideosSection() {
   const [videos, setVideos] = useState<MediaContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [transitionEnabled, setTransitionEnabled] = useState(true);
 
   useEffect(() => {
     async function loadVideos() {
       try {
         const res = await mediaService.getExperienceCollection();
-        setVideos(res || []);
+        const list = res || [];
+        setVideos(list);
+        if (list.length > 0) {
+          setActiveIndex(list.length * 25);
+        }
       } catch (err) {
         console.error("Failed to load experience videos:", err);
       } finally {
@@ -543,8 +572,24 @@ function ExperienceCollectionVideosSection() {
 
   if (loading || videos.length === 0) return null;
 
+  const repeatedVideos = Array.from({ length: 50 }).flatMap(() => videos);
+
   const handleEnded = () => {
-    setActiveIndex((prev) => (prev + 1) % videos.length);
+    setActiveIndex((prev) => prev + 1);
+  };
+
+  const handleTransitionEnd = () => {
+    const len = videos.length;
+    const minSafe = len * 15;
+    const maxSafe = len * 35;
+    if (activeIndex < minSafe || activeIndex > maxSafe) {
+      setTransitionEnabled(false);
+      const currentOffset = activeIndex % len;
+      setActiveIndex(len * 25 + currentOffset);
+      setTimeout(() => {
+        setTransitionEnabled(true);
+      }, 50);
+    }
   };
 
   return (
@@ -555,16 +600,18 @@ function ExperienceCollectionVideosSection() {
       </div>
       <div className="relative w-full overflow-hidden py-4">
         <div
-          className="flex gap-6 transition-transform duration-700 ease-in-out"
+          onTransitionEnd={handleTransitionEnd}
+          className="flex gap-6"
           style={{
-            transform: `translate3d(calc(50% - (var(--card-width) / 2) - (${activeIndex} * (var(--card-width) + 24px))), 0, 0)`,
+            transition: transitionEnabled ? "transform 700ms ease-in-out" : "none",
+            transform: `translate3d(calc(50vw - (var(--card-width) / 2) - (${activeIndex} * (var(--card-width) + 24px))), 0, 0)`,
           }}
         >
-          {videos.map((vid, idx) => {
+          {repeatedVideos.map((vid, idx) => {
             const isActive = idx === activeIndex;
             return (
               <div
-                key={vid.id}
+                key={`${vid.id}-${idx}`}
                 className={`relative experience-video-card aspect-video bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 ${
                   isActive ? "opacity-100 scale-100" : "opacity-40 scale-95"
                 }`}
