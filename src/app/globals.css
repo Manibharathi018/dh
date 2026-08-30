@@ -297,6 +297,39 @@
 .animate-float-badge { animation: float-badge 3.5s ease-in-out infinite; }
 .animate-reveal-hero { animation: reveal-hero 1.4s var(--ease-out-quart) both; }
 
+/* Review Video Card responsive width */
+.review-video-card {
+  --card-width: 200px;
+  width: var(--card-width);
+}
+@media (min-width: 640px) {
+  .review-video-card {
+    --card-width: 240px;
+  }
+}
+@media (min-width: 768px) {
+  .review-video-card {
+    --card-width: 320px;
+  }
+}
+
+/* Experience Video Card responsive width */
+.experience-video-card {
+  --card-width: 300px;
+  width: var(--card-width);
+}
+@media (min-width: 640px) {
+  .experience-video-card {
+    --card-width: 360px;
+  }
+}
+@media (min-width: 768px) {
+  .experience-video-card {
+    --card-width: 480px;
+  }
+}
+
+
 /* Hide Next.js Dev Indicator Widget */
 #nextjs-portal,
 nextjs-portal,

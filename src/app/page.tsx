@@ -423,44 +423,47 @@ function CategoryProductRow({ categoryName }: { categoryName: string }) {
   );
 }
 
-function AutoplayVideo({ src, className }: { src: string; className?: string }) {
+interface VideoCardProps {
+  src: string;
+  isActive: boolean;
+  onEnded: () => void;
+  className?: string;
+}
+
+function ManagedVideo({ src, isActive, onEnded, className }: VideoCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (video) {
+    if (!video) return;
+
+    if (isActive) {
+      video.currentTime = 0;
       video.muted = true;
       video.play().catch((err) => {
         console.log("Autoplay was prevented:", err);
       });
+    } else {
+      video.pause();
     }
-  }, [src]);
+  }, [isActive, src]);
 
   return (
     <video
       ref={videoRef}
       src={src}
-      autoPlay
       muted
-      loop
       playsInline
+      onEnded={onEnded}
       className={className}
     />
   );
 }
 
-const getMarqueeItems = (arr: MediaContent[]) => {
-  if (!arr || arr.length === 0) return [];
-  let result = [...arr];
-  while (result.length < 8) {
-    result = [...result, ...arr];
-  }
-  return [...result, ...result];
-};
-
 function ReviewVideosSection() {
   const [videos, setVideos] = useState<MediaContent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     async function loadVideos() {
@@ -478,25 +481,41 @@ function ReviewVideosSection() {
 
   if (loading || videos.length === 0) return null;
 
+  const handleEnded = () => {
+    setActiveIndex((prev) => (prev + 1) % videos.length);
+  };
+
   return (
     <section className="py-16 md:py-24 bg-surface border-b border-gray-100 overflow-hidden">
       <div className="container-editorial text-center mb-12">
         <p className="eyebrow mb-3 font-bold text-[#C9A84C]">Customer Voices</p>
         <h2 className="font-display text-3xl md:text-5xl">Reviews from the Community</h2>
       </div>
-      <div className="relative w-full">
-        <div className="flex w-max gap-6 animate-marquee">
-          {getMarqueeItems(videos).map((vid, idx) => (
-            <div
-              key={`${vid.id}-${idx}`}
-              className="relative w-[200px] sm:w-[240px] md:w-[320px] aspect-[3/4] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0"
-            >
-              <AutoplayVideo
-                src={getCloudinaryUrl(vid.address)}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ))}
+      <div className="relative w-full overflow-hidden py-4">
+        <div
+          className="flex gap-6 transition-transform duration-700 ease-in-out"
+          style={{
+            transform: `translate3d(calc(50% - (var(--card-width) / 2) - (${activeIndex} * (var(--card-width) + 24px))), 0, 0)`,
+          }}
+        >
+          {videos.map((vid, idx) => {
+            const isActive = idx === activeIndex;
+            return (
+              <div
+                key={vid.id}
+                className={`relative review-video-card aspect-[3/4] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 ${
+                  isActive ? "opacity-100 scale-100" : "opacity-40 scale-95"
+                }`}
+              >
+                <ManagedVideo
+                  src={getCloudinaryUrl(vid.address)}
+                  isActive={isActive}
+                  onEnded={handleEnded}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -506,6 +525,7 @@ function ReviewVideosSection() {
 function ExperienceCollectionVideosSection() {
   const [videos, setVideos] = useState<MediaContent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     async function loadVideos() {
@@ -523,25 +543,41 @@ function ExperienceCollectionVideosSection() {
 
   if (loading || videos.length === 0) return null;
 
+  const handleEnded = () => {
+    setActiveIndex((prev) => (prev + 1) % videos.length);
+  };
+
   return (
     <section className="py-16 md:py-24 bg-background overflow-hidden">
       <div className="container-editorial text-center mb-12">
         <p className="eyebrow mb-3 font-bold text-[#C9A84C]">Brand Story</p>
         <h2 className="font-display text-3xl md:text-5xl">Experience Our Collection</h2>
       </div>
-      <div className="relative w-full">
-        <div className="flex w-max gap-6 animate-marquee-reverse">
-          {getMarqueeItems(videos).map((vid, idx) => (
-            <div
-              key={`${vid.id}-${idx}`}
-              className="relative w-[300px] sm:w-[360px] md:w-[480px] aspect-video bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0"
-            >
-              <AutoplayVideo
-                src={getCloudinaryUrl(vid.address)}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ))}
+      <div className="relative w-full overflow-hidden py-4">
+        <div
+          className="flex gap-6 transition-transform duration-700 ease-in-out"
+          style={{
+            transform: `translate3d(calc(50% - (var(--card-width) / 2) - (${activeIndex} * (var(--card-width) + 24px))), 0, 0)`,
+          }}
+        >
+          {videos.map((vid, idx) => {
+            const isActive = idx === activeIndex;
+            return (
+              <div
+                key={vid.id}
+                className={`relative experience-video-card aspect-video bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 ${
+                  isActive ? "opacity-100 scale-100" : "opacity-40 scale-95"
+                }`}
+              >
+                <ManagedVideo
+                  src={getCloudinaryUrl(vid.address)}
+                  isActive={isActive}
+                  onEnded={handleEnded}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
