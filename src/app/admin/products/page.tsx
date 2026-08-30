@@ -1014,17 +1014,13 @@ export default function AdminProducts() {
                   </div>
 
                   {/* Live Calculated Price Indicator */}
-                  <div className="bg-neutral-50 border border-neutral-200 p-3.5 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="text-gray-500">Customer Selling Price: </span>
-                      <strong className="text-sm font-mono text-black ml-1">₹{calculatedSellingPrice}</strong>
-                    </div>
-                    {watchDiscount > 0 && (
+                  {watchDiscount > 0 && (
+                    <div className="bg-neutral-50 border border-neutral-200 p-3.5 flex items-center justify-between text-xs">
                       <div className="text-emerald-700 font-medium">
                         Save ₹{calculatedSavings} ({watchDiscount}% OFF)
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Product Imagery Upload */}

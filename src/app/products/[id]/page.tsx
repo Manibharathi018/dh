@@ -237,6 +237,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </h1>
               <div className="flex items-center gap-3 mt-4">
                 <span className="text-2xl font-bold text-gray-900">Rs. {product.price.toFixed(2)}</span>
+                {product.discountPercentage > 0 && (
+                  <span className="text-2xl font-bold text-red-600">
+                    Rs. {(product.price - (product.price * product.discountPercentage / 100)).toFixed(2)}
+                  </span>
+                )}
                 {product.originalPrice && product.originalPrice > 0 && (
                   <span className="text-gray-400 line-through text-sm">Rs. {product.originalPrice.toFixed(2)}</span>
                 )}
