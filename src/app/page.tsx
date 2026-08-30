@@ -428,9 +428,10 @@ interface VideoCardProps {
   isActive: boolean;
   onEnded: () => void;
   className?: string;
+  allowAudio?: boolean;
 }
 
-function ManagedVideo({ src, isActive, onEnded, className }: VideoCardProps) {
+function ManagedVideo({ src, isActive, onEnded, className, allowAudio }: VideoCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -439,22 +440,31 @@ function ManagedVideo({ src, isActive, onEnded, className }: VideoCardProps) {
 
     if (isActive) {
       video.currentTime = 0;
-      video.muted = true;
-      video.play().catch((err) => {
-        console.log("Autoplay was prevented:", err);
-      });
+      if (allowAudio) {
+        video.muted = false;
+        video.play().catch((err) => {
+          console.log("Unmuted autoplay prevented, falling back to muted:", err);
+          video.muted = true;
+          video.play().catch((e) => console.log("Muted fallback failed:", e));
+        });
+      } else {
+        video.muted = true;
+        video.play().catch((err) => {
+          console.log("Autoplay failed:", err);
+        });
+      }
     } else {
       video.pause();
     }
-  }, [isActive, src]);
+  }, [isActive, src, allowAudio]);
 
   return (
     <video
       ref={videoRef}
       src={src}
-      muted
+      muted={!allowAudio}
       playsInline
-      preload={isActive ? "auto" : "none"}
+      preload="auto"
       onEnded={onEnded}
       className={className}
     />
@@ -494,25 +504,29 @@ function ReviewVideosSection() {
 
   const handleEnded = () => {
     setPlayingIndex(-1);
-    setActiveIndex((prev) => prev + 1);
-  };
-
-  const handleTransitionEnd = () => {
-    const len = videos.length;
-    const minSafe = len * 15;
-    const maxSafe = len * 35;
-    if (activeIndex < minSafe || activeIndex > maxSafe) {
-      setTransitionEnabled(false);
-      const currentOffset = activeIndex % len;
-      const newMid = len * 25 + currentOffset;
-      setActiveIndex(newMid);
-      setPlayingIndex(newMid);
+    setActiveIndex((prevActive) => {
+      const nextActive = prevActive + 1;
+      
       setTimeout(() => {
-        setTransitionEnabled(true);
-      }, 50);
-    } else {
-      setPlayingIndex(activeIndex);
-    }
+        const len = videos.length;
+        const minSafe = len * 15;
+        const maxSafe = len * 35;
+        if (nextActive < minSafe || nextActive > maxSafe) {
+          setTransitionEnabled(false);
+          const currentOffset = nextActive % len;
+          const newMid = len * 25 + currentOffset;
+          setActiveIndex(newMid);
+          setPlayingIndex(newMid);
+          setTimeout(() => {
+            setTransitionEnabled(true);
+          }, 50);
+        } else {
+          setPlayingIndex(nextActive);
+        }
+      }, 700);
+
+      return nextActive;
+    });
   };
 
   return (
@@ -523,7 +537,6 @@ function ReviewVideosSection() {
       </div>
       <div className="relative w-full overflow-hidden py-4">
         <div
-          onTransitionEnd={handleTransitionEnd}
           className="flex gap-6"
           style={{
             transition: transitionEnabled ? "transform 700ms ease-in-out" : "none",
@@ -533,7 +546,7 @@ function ReviewVideosSection() {
           {repeatedVideos.map((vid, idx) => {
             const isActive = idx === activeIndex;
             const isPlaying = idx === playingIndex;
-            const isNearActive = Math.abs(idx - activeIndex) <= 3;
+            const isNearActive = Math.abs(idx - activeIndex) <= 5;
 
             return (
               <div
@@ -594,25 +607,29 @@ function ExperienceCollectionVideosSection() {
 
   const handleEnded = () => {
     setPlayingIndex(-1);
-    setActiveIndex((prev) => prev + 1);
-  };
-
-  const handleTransitionEnd = () => {
-    const len = videos.length;
-    const minSafe = len * 15;
-    const maxSafe = len * 35;
-    if (activeIndex < minSafe || activeIndex > maxSafe) {
-      setTransitionEnabled(false);
-      const currentOffset = activeIndex % len;
-      const newMid = len * 25 + currentOffset;
-      setActiveIndex(newMid);
-      setPlayingIndex(newMid);
+    setActiveIndex((prevActive) => {
+      const nextActive = prevActive + 1;
+      
       setTimeout(() => {
-        setTransitionEnabled(true);
-      }, 50);
-    } else {
-      setPlayingIndex(activeIndex);
-    }
+        const len = videos.length;
+        const minSafe = len * 15;
+        const maxSafe = len * 35;
+        if (nextActive < minSafe || nextActive > maxSafe) {
+          setTransitionEnabled(false);
+          const currentOffset = nextActive % len;
+          const newMid = len * 25 + currentOffset;
+          setActiveIndex(newMid);
+          setPlayingIndex(newMid);
+          setTimeout(() => {
+            setTransitionEnabled(true);
+          }, 50);
+        } else {
+          setPlayingIndex(nextActive);
+        }
+      }, 700);
+
+      return nextActive;
+    });
   };
 
   return (
@@ -623,7 +640,6 @@ function ExperienceCollectionVideosSection() {
       </div>
       <div className="relative w-full overflow-hidden py-4">
         <div
-          onTransitionEnd={handleTransitionEnd}
           className="flex gap-6"
           style={{
             transition: transitionEnabled ? "transform 700ms ease-in-out" : "none",
@@ -633,7 +649,7 @@ function ExperienceCollectionVideosSection() {
           {repeatedVideos.map((vid, idx) => {
             const isActive = idx === activeIndex;
             const isPlaying = idx === playingIndex;
-            const isNearActive = Math.abs(idx - activeIndex) <= 3;
+            const isNearActive = Math.abs(idx - activeIndex) <= 5;
 
             return (
               <div
@@ -647,6 +663,7 @@ function ExperienceCollectionVideosSection() {
                     src={getCloudinaryUrl(vid.address)}
                     isActive={isPlaying}
                     onEnded={handleEnded}
+                    allowAudio={true}
                     className="w-full h-full object-cover"
                   />
                 ) : (
