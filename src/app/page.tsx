@@ -594,7 +594,7 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
             return (
               <div
                 key={item.keyId}
-                className={`relative review-video-card aspect-[3/4] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 ${
+                className={`relative review-video-card aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 ${
                   isActive ? "opacity-100 scale-100" : "opacity-40 scale-95"
                 }`}
               >
@@ -602,6 +602,7 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
                   src={getCloudinaryUrl(item.content.address)}
                   isActive={isPlaying}
                   onEnded={handleEnded}
+                  allowAudio={true}
                   audioUnlocked={audioUnlocked}
                   className="w-full h-full object-cover"
                 />
@@ -692,7 +693,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
             return (
               <div
                 key={item.keyId}
-                className={`relative experience-video-card aspect-video bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 ${
+                className={`relative experience-video-card aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 ${
                   isActive ? "opacity-100 scale-100" : "opacity-40 scale-95"
                 }`}
               >

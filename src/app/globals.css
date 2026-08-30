@@ -315,17 +315,17 @@
 
 /* Experience Video Card responsive width */
 .experience-video-card {
-  --card-width: 300px;
+  --card-width: 200px;
   width: var(--card-width);
 }
 @media (min-width: 640px) {
   .experience-video-card {
-    --card-width: 360px;
+    --card-width: 240px;
   }
 }
 @media (min-width: 768px) {
   .experience-video-card {
-    --card-width: 480px;
+    --card-width: 320px;
   }
 }
 
