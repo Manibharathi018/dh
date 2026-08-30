@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Heart } from "lucide-react";
+import { ArrowRight, Heart, Play, Pause } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { productService } from "@/services/productService";
 import { categoryService, CategoryDTO } from "@/services/categoryService";
@@ -437,6 +437,7 @@ function ManagedVideo({ src, isActive, onEnded, className, allowAudio, audioUnlo
   const videoRef = useRef<HTMLVideoElement>(null);
   const prevActiveRef = useRef<boolean>(false);
   const prevSrcRef = useRef<string>("");
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -486,17 +487,52 @@ function ManagedVideo({ src, isActive, onEnded, className, allowAudio, audioUnlo
     video.play().catch((err) => console.log("Play on click failed:", err));
   };
 
+  const handleTogglePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.paused) {
+      if (allowAudio) {
+        video.muted = false;
+      } else {
+        video.muted = true;
+      }
+      video.play().catch((err) => console.log("Play from button failed:", err));
+    } else {
+      video.pause();
+    }
+  };
+
   return (
-    <video
-      ref={videoRef}
-      src={src}
-      muted={!allowAudio ? true : undefined}
-      playsInline
-      preload="auto"
-      onEnded={onEnded}
-      onClick={handleVideoClick}
-      className={className}
-    />
+    <div className="relative w-full h-full group">
+      <video
+        ref={videoRef}
+        src={src}
+        muted={!allowAudio ? true : undefined}
+        playsInline
+        preload="auto"
+        onEnded={onEnded}
+        onClick={handleVideoClick}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        className={className}
+      />
+      {isActive && (
+        <button
+          type="button"
+          onClick={handleTogglePlay}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-12 h-12 rounded-full bg-black/45 hover:bg-black/60 text-white backdrop-blur-sm transition-all duration-200 hover:scale-105 active:scale-95 z-20 shadow-md border border-white/10 cursor-pointer"
+          aria-label={isPlaying ? "Pause video" : "Play video"}
+        >
+          {isPlaying ? (
+            <Pause className="w-5 h-5 fill-white text-white" />
+          ) : (
+            <Play className="w-5 h-5 fill-white text-white translate-x-[1px]" />
+          )}
+        </button>
+      )}
+    </div>
   );
 }
 
