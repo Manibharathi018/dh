@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Heart } from "lucide-react";
@@ -423,6 +423,41 @@ function CategoryProductRow({ categoryName }: { categoryName: string }) {
   );
 }
 
+function AutoplayVideo({ src, className }: { src: string; className?: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.muted = true;
+      video.play().catch((err) => {
+        console.log("Autoplay was prevented:", err);
+      });
+    }
+  }, [src]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      autoPlay
+      muted
+      loop
+      playsInline
+      className={className}
+    />
+  );
+}
+
+const getMarqueeItems = (arr: MediaContent[]) => {
+  if (!arr || arr.length === 0) return [];
+  let result = [...arr];
+  while (result.length < 8) {
+    result = [...result, ...arr];
+  }
+  return [...result, ...result];
+};
+
 function ReviewVideosSection() {
   const [videos, setVideos] = useState<MediaContent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -444,18 +479,20 @@ function ReviewVideosSection() {
   if (loading || videos.length === 0) return null;
 
   return (
-    <section className="py-16 md:py-24 bg-surface border-b border-gray-100">
+    <section className="py-16 md:py-24 bg-surface border-b border-gray-100 overflow-hidden">
       <div className="container-editorial text-center mb-12">
         <p className="eyebrow mb-3 font-bold text-[#C9A84C]">Customer Voices</p>
         <h2 className="font-display text-3xl md:text-5xl">Reviews from the Community</h2>
       </div>
-      <div className="container-editorial">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {videos.map((vid) => (
-            <div key={vid.id} className="relative aspect-[3/4] bg-neutral-900 rounded shadow-md overflow-hidden">
-              <video
+      <div className="relative w-full">
+        <div className="flex w-max gap-6 animate-marquee">
+          {getMarqueeItems(videos).map((vid, idx) => (
+            <div
+              key={`${vid.id}-${idx}`}
+              className="relative w-[200px] sm:w-[240px] md:w-[320px] aspect-[3/4] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0"
+            >
+              <AutoplayVideo
                 src={getCloudinaryUrl(vid.address)}
-                controls
                 className="w-full h-full object-cover"
               />
             </div>
@@ -487,18 +524,20 @@ function ExperienceCollectionVideosSection() {
   if (loading || videos.length === 0) return null;
 
   return (
-    <section className="py-16 md:py-24 bg-background">
+    <section className="py-16 md:py-24 bg-background overflow-hidden">
       <div className="container-editorial text-center mb-12">
         <p className="eyebrow mb-3 font-bold text-[#C9A84C]">Brand Story</p>
         <h2 className="font-display text-3xl md:text-5xl">Experience Our Collection</h2>
       </div>
-      <div className="container-editorial">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {videos.map((vid) => (
-            <div key={vid.id} className="relative aspect-video bg-neutral-900 rounded shadow-md overflow-hidden">
-              <video
+      <div className="relative w-full">
+        <div className="flex w-max gap-6 animate-marquee-reverse">
+          {getMarqueeItems(videos).map((vid, idx) => (
+            <div
+              key={`${vid.id}-${idx}`}
+              className="relative w-[300px] sm:w-[360px] md:w-[480px] aspect-video bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0"
+            >
+              <AutoplayVideo
                 src={getCloudinaryUrl(vid.address)}
-                controls
                 className="w-full h-full object-cover"
               />
             </div>
