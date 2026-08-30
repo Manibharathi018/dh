@@ -734,6 +734,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
   const [transitionEnabled, setTransitionEnabled] = useState(true);
 
   const trackRef = useRef<HTMLDivElement>(null);
+  const singleVideoRef = useRef<HTMLDivElement>(null);
   const [translateX, setTranslateX] = useState(0);
 
   const sectionRef = useRef<HTMLElement>(null);
@@ -774,16 +775,20 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
   };
 
   useLayoutEffect(() => {
-    updatePosition();
-  }, [activeIndex, displayList]);
+    if (videos.length >= 2) {
+      updatePosition();
+    }
+  }, [activeIndex, displayList, videos]);
 
   useEffect(() => {
     let resizeTimer: number;
     const handleResize = () => {
-      cancelAnimationFrame(resizeTimer);
-      resizeTimer = requestAnimationFrame(() => {
-        updatePosition();
-      });
+      if (videos.length >= 2) {
+        cancelAnimationFrame(resizeTimer);
+        resizeTimer = requestAnimationFrame(() => {
+          updatePosition();
+        });
+      }
     };
 
     window.addEventListener("resize", handleResize);
@@ -791,7 +796,26 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(resizeTimer);
     };
-  }, [activeIndex, displayList]);
+  }, [activeIndex, displayList, videos]);
+
+  useLayoutEffect(() => {
+    if (videos.length === 1) {
+      const centerSingleVideo = () => {
+        const card = singleVideoRef.current;
+        if (!card) return;
+        card.style.transform = "none";
+        const rect = card.getBoundingClientRect();
+        const viewportCenter = window.innerWidth / 2;
+        const videoCenter = rect.left + rect.width / 2;
+        const offset = viewportCenter - videoCenter;
+        card.style.transform = `translate3d(${offset}px, 0, 0)`;
+      };
+
+      centerSingleVideo();
+      window.addEventListener("resize", centerSingleVideo);
+      return () => window.removeEventListener("resize", centerSingleVideo);
+    }
+  }, [videos, loading]);
 
   useEffect(() => {
     async function loadVideos() {
@@ -815,6 +839,41 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
   }, []);
 
   if (loading || videos.length === 0) return null;
+
+  if (videos.length === 1) {
+    const item = videos[0];
+    return (
+      <section ref={sectionRef} className="py-16 md:py-24 bg-background overflow-hidden">
+        <div className="container-editorial text-center mb-12">
+          <p className="eyebrow mb-3 font-bold text-[#C9A84C]">Brand Story</p>
+          <h2 className="font-display text-3xl md:text-5xl">Experience Our Collection</h2>
+        </div>
+        <div className="relative w-full overflow-hidden py-4 flex justify-center">
+          <div
+            ref={singleVideoRef}
+            className="relative experience-video-card aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-transform duration-500"
+            style={{ opacity: 1 }}
+          >
+            <ManagedVideo
+              src={getCloudinaryUrl(item.address)}
+              isActive={sectionVisible}
+              onEnded={() => {
+                const video = singleVideoRef.current?.querySelector("video");
+                if (video) {
+                  video.currentTime = 0;
+                  video.play().catch((err) => console.log("Replay failed:", err));
+                }
+              }}
+              allowAudio={false}
+              audioUnlocked={audioUnlocked}
+              isSectionVisible={sectionVisible}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const handleEnded = () => {
     if (videos.length === 1) {
