@@ -475,7 +475,11 @@ function ManagedVideo({ src, isActive, onEnded, className, allowAudio, audioUnlo
 
   const handleVideoClick = (e: React.MouseEvent<HTMLVideoElement>) => {
     const video = e.currentTarget;
-    video.muted = false;
+    if (allowAudio) {
+      video.muted = false;
+    } else {
+      video.muted = true;
+    }
     video.play().catch((err) => console.log("Play on click failed:", err));
   };
 
@@ -483,6 +487,7 @@ function ManagedVideo({ src, isActive, onEnded, className, allowAudio, audioUnlo
     <video
       ref={videoRef}
       src={src}
+      muted={!allowAudio ? true : undefined}
       playsInline
       preload="auto"
       onEnded={onEnded}
