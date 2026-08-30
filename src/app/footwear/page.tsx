@@ -35,7 +35,7 @@ function ProductGrid({ products }: { products: Product[] }) {
               />
               {discount > 0 && (
                 <span className="absolute top-2 left-2 md:top-4 md:left-4 bg-[var(--color-destructive)] text-white text-[10px] md:text-xs uppercase tracking-widest font-semibold px-2 py-1 md:px-3 md:py-1">
-                  {discount}% off
+                  -{discount}%
                 </span>
               )}
             </div>

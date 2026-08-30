@@ -73,7 +73,7 @@ export default function PumaWorldPage() {
                   />
                   {product.discountPercentage > 0 && (
                     <span className="absolute top-4 left-4 bg-[var(--color-destructive)] text-white text-xs uppercase tracking-widest font-semibold px-3 py-1">
-                      {product.discountPercentage}% off
+                      -{product.discountPercentage}% Off
                     </span>
                   )}
                 </div>
