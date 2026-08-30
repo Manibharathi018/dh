@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Heart } from "lucide-react";
@@ -524,6 +524,46 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
   const [playingIndex, setPlayingIndex] = useState(1);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
 
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [translateX, setTranslateX] = useState(0);
+
+  const updatePosition = () => {
+    const track = trackRef.current;
+    if (!track) return;
+    const activeSlide = track.children[activeIndex] as HTMLDivElement;
+    if (!activeSlide) return;
+
+    const trackRect = track.getBoundingClientRect();
+    const slideRect = activeSlide.getBoundingClientRect();
+
+    const offsetFromTrackStart = slideRect.left - trackRect.left;
+    const slideWidth = slideRect.width;
+    const viewportCenter = window.innerWidth / 2;
+    const targetTranslateX = viewportCenter - offsetFromTrackStart - (slideWidth / 2);
+
+    setTranslateX(targetTranslateX);
+  };
+
+  useLayoutEffect(() => {
+    updatePosition();
+  }, [activeIndex, displayList]);
+
+  useEffect(() => {
+    let resizeTimer: number;
+    const handleResize = () => {
+      cancelAnimationFrame(resizeTimer);
+      resizeTimer = requestAnimationFrame(() => {
+        updatePosition();
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(resizeTimer);
+    };
+  }, [activeIndex, displayList]);
+
   useEffect(() => {
     async function loadVideos() {
       try {
@@ -567,9 +607,13 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
         setPlayingIndex(1);
         return rotated;
       });
-      setTimeout(() => {
-        setTransitionEnabled(true);
-      }, 50);
+
+      requestAnimationFrame(() => {
+        updatePosition();
+        setTimeout(() => {
+          setTransitionEnabled(true);
+        }, 50);
+      });
     }, 700);
   };
 
@@ -581,10 +625,11 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
       </div>
       <div className="relative w-full overflow-hidden py-4">
         <div
+          ref={trackRef}
           className="flex gap-6"
           style={{
             transition: transitionEnabled ? "transform 700ms ease-in-out" : "none",
-            transform: `translate3d(calc(50vw - (var(--card-width) / 2) - (${activeIndex} * (var(--card-width) + 24px))), 0, 0)`,
+            transform: `translate3d(${translateX}px, 0, 0)`,
           }}
         >
           {displayList.map((item, idx) => {
@@ -622,6 +667,46 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
   const [activeIndex, setActiveIndex] = useState(1);
   const [playingIndex, setPlayingIndex] = useState(1);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
+
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [translateX, setTranslateX] = useState(0);
+
+  const updatePosition = () => {
+    const track = trackRef.current;
+    if (!track) return;
+    const activeSlide = track.children[activeIndex] as HTMLDivElement;
+    if (!activeSlide) return;
+
+    const trackRect = track.getBoundingClientRect();
+    const slideRect = activeSlide.getBoundingClientRect();
+
+    const offsetFromTrackStart = slideRect.left - trackRect.left;
+    const slideWidth = slideRect.width;
+    const viewportCenter = window.innerWidth / 2;
+    const targetTranslateX = viewportCenter - offsetFromTrackStart - (slideWidth / 2);
+
+    setTranslateX(targetTranslateX);
+  };
+
+  useLayoutEffect(() => {
+    updatePosition();
+  }, [activeIndex, displayList]);
+
+  useEffect(() => {
+    let resizeTimer: number;
+    const handleResize = () => {
+      cancelAnimationFrame(resizeTimer);
+      resizeTimer = requestAnimationFrame(() => {
+        updatePosition();
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(resizeTimer);
+    };
+  }, [activeIndex, displayList]);
 
   useEffect(() => {
     async function loadVideos() {
@@ -666,9 +751,13 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
         setPlayingIndex(1);
         return rotated;
       });
-      setTimeout(() => {
-        setTransitionEnabled(true);
-      }, 50);
+
+      requestAnimationFrame(() => {
+        updatePosition();
+        setTimeout(() => {
+          setTransitionEnabled(true);
+        }, 50);
+      });
     }, 700);
   };
 
@@ -680,10 +769,11 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
       </div>
       <div className="relative w-full overflow-hidden py-4">
         <div
+          ref={trackRef}
           className="flex gap-6"
           style={{
             transition: transitionEnabled ? "transform 700ms ease-in-out" : "none",
-            transform: `translate3d(calc(50vw - (var(--card-width) / 2) - (${activeIndex} * (var(--card-width) + 24px))), 0, 0)`,
+            transform: `translate3d(${translateX}px, 0, 0)`,
           }}
         >
           {displayList.map((item, idx) => {
@@ -701,7 +791,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
                   src={getCloudinaryUrl(item.content.address)}
                   isActive={isPlaying}
                   onEnded={handleEnded}
-                  allowAudio={true}
+                  allowAudio={false}
                   audioUnlocked={audioUnlocked}
                   className="w-full h-full object-cover"
                 />
