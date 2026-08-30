@@ -258,19 +258,19 @@ export default function SearchDrawer() {
                               <h4 className="text-sm font-semibold text-gray-900 group-hover:text-[#8B6914] transition-colors truncate">
                                 {product.name}
                               </h4>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-sm font-bold font-mono text-gray-900">
-                                  ₹{product.price}
+                              <div className="flex items-center gap-2 mt-1 font-mono text-xs">
+                                <span className="text-sm font-bold text-gray-900">
+                                  ₹{Math.round(product.price || 0).toLocaleString("en-IN")}
                                 </span>
-                                {product.originalPrice && product.originalPrice > 0 && (
-                                  <span className="text-xs font-mono text-gray-400 line-through">
-                                    ₹{product.originalPrice}
-                                  </span>
-                                )}
                                 {discount > 0 && (
-                                  <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
-                                    {discount}% OFF
-                                  </span>
+                                  <>
+                                    <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
+                                      {discount}% off
+                                    </span>
+                                    <span className="text-xs text-muted-foreground line-through font-normal">
+                                      ₹{Math.round((product.price || 0) / (1 - Math.min(99.9, discount) / 100)).toLocaleString("en-IN")}
+                                    </span>
+                                  </>
                                 )}
                               </div>
                             </div>

@@ -102,18 +102,18 @@ export default function WishlistPage() {
                   <div className="space-y-1.5">
                     <p className="text-[10px] tracking-[0.2em] font-bold uppercase text-muted-foreground">{p.brand || p.category?.name || "DFO"}</p>
                     <h4 className="font-medium text-sm text-ink truncate group-hover:text-sale transition-colors">{p.name}</h4>
-                    <div className="flex items-center gap-2 text-xs pt-1">
+                    <div className="flex items-center gap-2 text-xs pt-1 font-mono">
+                      <span className="font-semibold text-gray-900">₹{Math.round(p.price || 0).toLocaleString("en-IN")}</span>
                       {discount > 0 ? (
                         <>
-                          <span className="text-gray-400 line-through">Rs. {mrp.toLocaleString("en-IN")}</span>
-                          <span className="font-semibold text-gray-900">Rs. {(p.price || 0).toLocaleString("en-IN")}</span>
                           <span className="bg-[#B91C1C] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-sm">
-                            -{discount}%
+                            {discount}% off
+                          </span>
+                          <span className="text-gray-400 line-through font-normal">
+                            ₹{Math.round((p.price || 0) / (1 - Math.min(99.9, discount) / 100)).toLocaleString("en-IN")}
                           </span>
                         </>
-                      ) : (
-                        <span className="font-semibold text-gray-900">Rs. {(p.price || 0).toLocaleString("en-IN")}</span>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </Link>

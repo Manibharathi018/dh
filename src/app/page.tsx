@@ -78,15 +78,17 @@ function ProductCard({ p }: { p: Partial<Product> }) {
             {p.brand || "DFO"}
           </p>
           <h4 className="mt-1 font-medium text-sm text-ink truncate group-hover:text-sale transition-colors">{p.name}</h4>
-          <div className="mt-1.5 flex items-baseline gap-2">
-            <span className="font-semibold text-ink">₹{(p.price || 0).toLocaleString("en-IN")}</span>
-            {p.originalPrice && p.originalPrice > 0 && (
-              <span className="text-xs text-muted-foreground line-through">₹{p.originalPrice.toLocaleString("en-IN")}</span>
-            )}
+          <div className="mt-1.5 flex items-baseline gap-2 font-mono text-sm">
+            <span className="font-semibold text-ink">₹{Math.round(p.price || 0).toLocaleString("en-IN")}</span>
             {discount > 0 && (
-              <span className="text-xs text-sale font-bold bg-sale/10 px-1.5 py-0.5 rounded">
-                {discount}% off
-              </span>
+              <>
+                <span className="text-xs text-sale font-bold bg-sale/10 px-1.5 py-0.5 rounded">
+                  {discount}% off
+                </span>
+                <span className="text-xs text-muted-foreground line-through font-normal">
+                  ₹{Math.round((p.price || 0) / (1 - Math.min(99.9, discount) / 100)).toLocaleString("en-IN")}
+                </span>
+              </>
             )}
           </div>
         </div>
