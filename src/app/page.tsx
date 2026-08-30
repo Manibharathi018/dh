@@ -430,9 +430,10 @@ interface VideoCardProps {
   className?: string;
   allowAudio?: boolean;
   audioUnlocked?: boolean;
+  isSectionVisible?: boolean;
 }
 
-function ManagedVideo({ src, isActive, onEnded, className, allowAudio, audioUnlocked }: VideoCardProps) {
+function ManagedVideo({ src, isActive, onEnded, className, allowAudio, audioUnlocked, isSectionVisible }: VideoCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const prevActiveRef = useRef<boolean>(false);
   const prevSrcRef = useRef<string>("");
@@ -445,7 +446,9 @@ function ManagedVideo({ src, isActive, onEnded, className, allowAudio, audioUnlo
     prevActiveRef.current = isActive;
     prevSrcRef.current = src;
 
-    if (isActive) {
+    const canPlay = isActive && isSectionVisible;
+
+    if (canPlay) {
       if (becameActive) {
         video.currentTime = 0; // Reset progress ONLY when the video becomes newly active
       }
@@ -471,7 +474,7 @@ function ManagedVideo({ src, isActive, onEnded, className, allowAudio, audioUnlo
     } else {
       video.pause();
     }
-  }, [isActive, src, allowAudio, audioUnlocked]);
+  }, [isActive, src, allowAudio, audioUnlocked, isSectionVisible]);
 
   const handleVideoClick = (e: React.MouseEvent<HTMLVideoElement>) => {
     const video = e.currentTarget;
@@ -531,6 +534,26 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
 
   const trackRef = useRef<HTMLDivElement>(null);
   const [translateX, setTranslateX] = useState(0);
+
+  const sectionRef = useRef<HTMLElement>(null);
+  const [sectionVisible, setSectionVisible] = useState(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setSectionVisible(entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+
+    observer.observe(section);
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   const updatePosition = () => {
     const track = trackRef.current;
@@ -623,7 +646,7 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-surface border-b border-gray-100 overflow-hidden">
+    <section ref={sectionRef} className="py-16 md:py-24 bg-surface border-b border-gray-100 overflow-hidden">
       <div className="container-editorial text-center mb-12">
         <p className="eyebrow mb-3 font-bold text-[#C9A84C]">Customer Voices</p>
         <h2 className="font-display text-3xl md:text-5xl">Reviews from the Community</h2>
@@ -654,6 +677,7 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
                   onEnded={handleEnded}
                   allowAudio={true}
                   audioUnlocked={audioUnlocked}
+                  isSectionVisible={sectionVisible}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -675,6 +699,26 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
 
   const trackRef = useRef<HTMLDivElement>(null);
   const [translateX, setTranslateX] = useState(0);
+
+  const sectionRef = useRef<HTMLElement>(null);
+  const [sectionVisible, setSectionVisible] = useState(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setSectionVisible(entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+
+    observer.observe(section);
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   const updatePosition = () => {
     const track = trackRef.current;
@@ -767,7 +811,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
   };
 
   return (
-    <section className="py-16 md:py-24 bg-background overflow-hidden">
+    <section ref={sectionRef} className="py-16 md:py-24 bg-background overflow-hidden">
       <div className="container-editorial text-center mb-12">
         <p className="eyebrow mb-3 font-bold text-[#C9A84C]">Brand Story</p>
         <h2 className="font-display text-3xl md:text-5xl">Experience Our Collection</h2>
@@ -798,6 +842,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
                   onEnded={handleEnded}
                   allowAudio={false}
                   audioUnlocked={audioUnlocked}
+                  isSectionVisible={sectionVisible}
                   className="w-full h-full object-cover"
                 />
               </div>
