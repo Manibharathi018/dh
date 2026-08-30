@@ -458,6 +458,14 @@ function ManagedVideo({ src, isActive, onEnded, className, allowAudio }: VideoCa
     }
   }, [isActive, src, allowAudio]);
 
+  const handleVideoClick = (e: React.MouseEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    if (video.muted) {
+      video.muted = false;
+      video.play().catch((err) => console.log("Play on click failed:", err));
+    }
+  };
+
   return (
     <video
       ref={videoRef}
@@ -466,16 +474,42 @@ function ManagedVideo({ src, isActive, onEnded, className, allowAudio }: VideoCa
       playsInline
       preload="auto"
       onEnded={onEnded}
+      onClick={handleVideoClick}
       className={className}
     />
   );
 }
 
+interface DisplayItem {
+  keyId: string;
+  content: MediaContent;
+}
+
+const getInitialDisplayList = (list: MediaContent[]): DisplayItem[] => {
+  if (list.length === 0) return [];
+  if (list.length === 1) return [{ keyId: `item-${list[0].id}-0`, content: list[0] }];
+  
+  let baseList = [...list];
+  if (list.length === 2) {
+    baseList = [list[1], list[0], list[1], list[0]];
+  } else {
+    const last = list[list.length - 1];
+    const rest = list.slice(0, list.length - 1);
+    baseList = [last, ...rest];
+  }
+  
+  return baseList.map((content, idx) => ({
+    keyId: `item-${content.id}-${idx}`,
+    content
+  }));
+};
+
 function ReviewVideosSection() {
   const [videos, setVideos] = useState<MediaContent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [playingIndex, setPlayingIndex] = useState(-1);
+  const [displayList, setDisplayList] = useState<DisplayItem[]>([]);
+  const [activeIndex, setActiveIndex] = useState(1);
+  const [playingIndex, setPlayingIndex] = useState(1);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
 
   useEffect(() => {
@@ -485,9 +519,10 @@ function ReviewVideosSection() {
         const list = res || [];
         setVideos(list);
         if (list.length > 0) {
-          const initial = list.length * 25;
-          setActiveIndex(initial);
-          setPlayingIndex(initial);
+          setDisplayList(getInitialDisplayList(list));
+          const initialIndex = list.length === 1 ? 0 : 1;
+          setActiveIndex(initialIndex);
+          setPlayingIndex(initialIndex);
         }
       } catch (err) {
         console.error("Failed to load review videos:", err);
@@ -500,33 +535,30 @@ function ReviewVideosSection() {
 
   if (loading || videos.length === 0) return null;
 
-  const repeatedVideos = Array.from({ length: 50 }).flatMap(() => videos);
-
   const handleEnded = () => {
-    setPlayingIndex(-1);
-    setActiveIndex((prevActive) => {
-      const nextActive = prevActive + 1;
-      
+    if (videos.length === 1) {
+      setPlayingIndex(-1);
       setTimeout(() => {
-        const len = videos.length;
-        const minSafe = len * 15;
-        const maxSafe = len * 35;
-        if (nextActive < minSafe || nextActive > maxSafe) {
-          setTransitionEnabled(false);
-          const currentOffset = nextActive % len;
-          const newMid = len * 25 + currentOffset;
-          setActiveIndex(newMid);
-          setPlayingIndex(newMid);
-          setTimeout(() => {
-            setTransitionEnabled(true);
-          }, 50);
-        } else {
-          setPlayingIndex(nextActive);
-        }
-      }, 700);
+        setPlayingIndex(0);
+      }, 50);
+      return;
+    }
 
-      return nextActive;
-    });
+    setPlayingIndex(-1);
+    setActiveIndex(2);
+
+    setTimeout(() => {
+      setTransitionEnabled(false);
+      setDisplayList((prevList) => {
+        const rotated = [...prevList.slice(1), prevList[0]];
+        setActiveIndex(1);
+        setPlayingIndex(1);
+        return rotated;
+      });
+      setTimeout(() => {
+        setTransitionEnabled(true);
+      }, 50);
+    }, 700);
   };
 
   return (
@@ -543,28 +575,23 @@ function ReviewVideosSection() {
             transform: `translate3d(calc(50vw - (var(--card-width) / 2) - (${activeIndex} * (var(--card-width) + 24px))), 0, 0)`,
           }}
         >
-          {repeatedVideos.map((vid, idx) => {
+          {displayList.map((item, idx) => {
             const isActive = idx === activeIndex;
             const isPlaying = idx === playingIndex;
-            const isNearActive = Math.abs(idx - activeIndex) <= 5;
 
             return (
               <div
-                key={`${vid.id}-${idx}`}
+                key={item.keyId}
                 className={`relative review-video-card aspect-[3/4] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 ${
                   isActive ? "opacity-100 scale-100" : "opacity-40 scale-95"
                 }`}
               >
-                {isNearActive ? (
-                  <ManagedVideo
-                    src={getCloudinaryUrl(vid.address)}
-                    isActive={isPlaying}
-                    onEnded={handleEnded}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-neutral-900" />
-                )}
+                <ManagedVideo
+                  src={getCloudinaryUrl(item.content.address)}
+                  isActive={isPlaying}
+                  onEnded={handleEnded}
+                  className="w-full h-full object-cover"
+                />
               </div>
             );
           })}
@@ -577,8 +604,9 @@ function ReviewVideosSection() {
 function ExperienceCollectionVideosSection() {
   const [videos, setVideos] = useState<MediaContent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [playingIndex, setPlayingIndex] = useState(-1);
+  const [displayList, setDisplayList] = useState<DisplayItem[]>([]);
+  const [activeIndex, setActiveIndex] = useState(1);
+  const [playingIndex, setPlayingIndex] = useState(1);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
 
   useEffect(() => {
@@ -588,9 +616,10 @@ function ExperienceCollectionVideosSection() {
         const list = res || [];
         setVideos(list);
         if (list.length > 0) {
-          const initial = list.length * 25;
-          setActiveIndex(initial);
-          setPlayingIndex(initial);
+          setDisplayList(getInitialDisplayList(list));
+          const initialIndex = list.length === 1 ? 0 : 1;
+          setActiveIndex(initialIndex);
+          setPlayingIndex(initialIndex);
         }
       } catch (err) {
         console.error("Failed to load experience videos:", err);
@@ -603,33 +632,30 @@ function ExperienceCollectionVideosSection() {
 
   if (loading || videos.length === 0) return null;
 
-  const repeatedVideos = Array.from({ length: 50 }).flatMap(() => videos);
-
   const handleEnded = () => {
-    setPlayingIndex(-1);
-    setActiveIndex((prevActive) => {
-      const nextActive = prevActive + 1;
-      
+    if (videos.length === 1) {
+      setPlayingIndex(-1);
       setTimeout(() => {
-        const len = videos.length;
-        const minSafe = len * 15;
-        const maxSafe = len * 35;
-        if (nextActive < minSafe || nextActive > maxSafe) {
-          setTransitionEnabled(false);
-          const currentOffset = nextActive % len;
-          const newMid = len * 25 + currentOffset;
-          setActiveIndex(newMid);
-          setPlayingIndex(newMid);
-          setTimeout(() => {
-            setTransitionEnabled(true);
-          }, 50);
-        } else {
-          setPlayingIndex(nextActive);
-        }
-      }, 700);
+        setPlayingIndex(0);
+      }, 50);
+      return;
+    }
 
-      return nextActive;
-    });
+    setPlayingIndex(-1);
+    setActiveIndex(2);
+
+    setTimeout(() => {
+      setTransitionEnabled(false);
+      setDisplayList((prevList) => {
+        const rotated = [...prevList.slice(1), prevList[0]];
+        setActiveIndex(1);
+        setPlayingIndex(1);
+        return rotated;
+      });
+      setTimeout(() => {
+        setTransitionEnabled(true);
+      }, 50);
+    }, 700);
   };
 
   return (
@@ -646,29 +672,24 @@ function ExperienceCollectionVideosSection() {
             transform: `translate3d(calc(50vw - (var(--card-width) / 2) - (${activeIndex} * (var(--card-width) + 24px))), 0, 0)`,
           }}
         >
-          {repeatedVideos.map((vid, idx) => {
+          {displayList.map((item, idx) => {
             const isActive = idx === activeIndex;
             const isPlaying = idx === playingIndex;
-            const isNearActive = Math.abs(idx - activeIndex) <= 5;
 
             return (
               <div
-                key={`${vid.id}-${idx}`}
+                key={item.keyId}
                 className={`relative experience-video-card aspect-video bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 ${
                   isActive ? "opacity-100 scale-100" : "opacity-40 scale-95"
                 }`}
               >
-                {isNearActive ? (
-                  <ManagedVideo
-                    src={getCloudinaryUrl(vid.address)}
-                    isActive={isPlaying}
-                    onEnded={handleEnded}
-                    allowAudio={true}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-neutral-900" />
-                )}
+                <ManagedVideo
+                  src={getCloudinaryUrl(item.content.address)}
+                  isActive={isPlaying}
+                  onEnded={handleEnded}
+                  allowAudio={true}
+                  className="w-full h-full object-cover"
+                />
               </div>
             );
           })}
