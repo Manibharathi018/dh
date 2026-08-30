@@ -59,7 +59,6 @@ export default function Navbar() {
   }, [scrollY]);
 
   const navLinks: { name: string; href: string; highlight?: boolean }[] = [
-    { name: "Shop All", href: "/products" },
     ...categories.map((c) => ({
       name: c.name,
       href: `/category/${encodeURIComponent(c.name)}`,
