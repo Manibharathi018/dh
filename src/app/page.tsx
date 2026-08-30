@@ -429,24 +429,39 @@ interface VideoCardProps {
   onEnded: () => void;
   className?: string;
   allowAudio?: boolean;
+  audioUnlocked?: boolean;
 }
 
-function ManagedVideo({ src, isActive, onEnded, className, allowAudio }: VideoCardProps) {
+function ManagedVideo({ src, isActive, onEnded, className, allowAudio, audioUnlocked }: VideoCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const prevActiveRef = useRef<boolean>(false);
+  const prevSrcRef = useRef<string>("");
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
+    const becameActive = isActive && (!prevActiveRef.current || prevSrcRef.current !== src);
+    prevActiveRef.current = isActive;
+    prevSrcRef.current = src;
+
     if (isActive) {
-      video.currentTime = 0;
+      if (becameActive) {
+        video.currentTime = 0; // Reset progress ONLY when the video becomes newly active
+      }
+
       if (allowAudio) {
-        video.muted = false;
-        video.play().catch((err) => {
-          console.log("Unmuted autoplay prevented, falling back to muted:", err);
-          video.muted = true;
-          video.play().catch((e) => console.log("Muted fallback failed:", e));
-        });
+        if (audioUnlocked) {
+          video.muted = false;
+          video.play().catch((err) => {
+            console.log("Unmuted play failed after unlock:", err);
+          });
+        } else {
+          video.muted = false;
+          video.play().catch((err) => {
+            console.log("Initial unmuted play rejected, keeping paused:", err);
+          });
+        }
       } else {
         video.muted = true;
         video.play().catch((err) => {
@@ -456,21 +471,19 @@ function ManagedVideo({ src, isActive, onEnded, className, allowAudio }: VideoCa
     } else {
       video.pause();
     }
-  }, [isActive, src, allowAudio]);
+  }, [isActive, src, allowAudio, audioUnlocked]);
 
   const handleVideoClick = (e: React.MouseEvent<HTMLVideoElement>) => {
     const video = e.currentTarget;
-    if (video.muted) {
-      video.muted = false;
-      video.play().catch((err) => console.log("Play on click failed:", err));
-    }
+    video.muted = false;
+    video.play().catch((err) => console.log("Play on click failed:", err));
   };
 
   return (
     <video
       ref={videoRef}
       src={src}
-      muted={!allowAudio}
+      muted={!allowAudio || !audioUnlocked}
       playsInline
       preload="auto"
       onEnded={onEnded}
@@ -504,7 +517,7 @@ const getInitialDisplayList = (list: MediaContent[]): DisplayItem[] => {
   }));
 };
 
-function ReviewVideosSection() {
+function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
   const [videos, setVideos] = useState<MediaContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayList, setDisplayList] = useState<DisplayItem[]>([]);
@@ -590,6 +603,7 @@ function ReviewVideosSection() {
                   src={getCloudinaryUrl(item.content.address)}
                   isActive={isPlaying}
                   onEnded={handleEnded}
+                  audioUnlocked={audioUnlocked}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -601,7 +615,7 @@ function ReviewVideosSection() {
   );
 }
 
-function ExperienceCollectionVideosSection() {
+function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
   const [videos, setVideos] = useState<MediaContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayList, setDisplayList] = useState<DisplayItem[]>([]);
@@ -688,6 +702,7 @@ function ExperienceCollectionVideosSection() {
                   isActive={isPlaying}
                   onEnded={handleEnded}
                   allowAudio={true}
+                  audioUnlocked={audioUnlocked}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -700,14 +715,36 @@ function ExperienceCollectionVideosSection() {
 }
 
 export default function Home() {
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
+
+  useEffect(() => {
+    const handleInteraction = () => {
+      setAudioUnlocked(true);
+      cleanup();
+    };
+
+    const events = ["pointerdown", "click", "touchstart", "keydown"];
+    const cleanup = () => {
+      events.forEach((ev) => {
+        window.removeEventListener(ev, handleInteraction, { capture: true });
+      });
+    };
+
+    events.forEach((ev) => {
+      window.addEventListener(ev, handleInteraction, { capture: true, once: true });
+    });
+
+    return cleanup;
+  }, []);
+
   return (
     <main className="w-full bg-background min-h-screen">
       <BannerSlider />
       <FeaturedProducts />
       <Departments />
       <CategoryProductsSection />
-      <ReviewVideosSection />
-      <ExperienceCollectionVideosSection />
+      <ReviewVideosSection audioUnlocked={audioUnlocked} />
+      <ExperienceCollectionVideosSection audioUnlocked={audioUnlocked} />
     </main>
   );
 }
