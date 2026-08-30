@@ -483,7 +483,6 @@ function ManagedVideo({ src, isActive, onEnded, className, allowAudio, audioUnlo
     <video
       ref={videoRef}
       src={src}
-      muted={!allowAudio || !audioUnlocked}
       playsInline
       preload="auto"
       onEnded={onEnded}
