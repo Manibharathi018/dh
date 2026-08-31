@@ -17,6 +17,10 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://dfoclothing.com"),
+  alternates: {
+    canonical: "./",
+  },
   title: {
     template: "%s | DHANYA Factory Outlet",
     default: "DHANYA Factory Outlet | Premium Fashion",
