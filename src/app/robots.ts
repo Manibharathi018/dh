@@ -17,6 +17,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: "https://dfoclothing.com/sitemap.xml",
+    sitemap: "https://www.dfoclothing.com/sitemap.xml",
   };
 }
