@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Heart, Play, Pause } from "lucide-react";
+import { ArrowRight, Heart, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import HeroCinematicScroll from "@/components/HeroCinematicScroll";
 import { productService } from "@/services/productService";
@@ -427,18 +427,17 @@ function CategoryProductRow({ categoryName }: { categoryName: string }) {
 interface VideoCardProps {
   src: string;
   isActive: boolean;
-  onEnded: () => void;
+  onEnded?: () => void;
   className?: string;
-  allowAudio?: boolean;
-  audioUnlocked?: boolean;
   isSectionVisible?: boolean;
 }
 
-function ManagedVideo({ src, isActive, onEnded, className, allowAudio, audioUnlocked, isSectionVisible }: VideoCardProps) {
+function ManagedVideo({ src, isActive, onEnded, className, isSectionVisible }: VideoCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const prevActiveRef = useRef<boolean>(false);
   const prevSrcRef = useRef<string>("");
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -448,45 +447,20 @@ function ManagedVideo({ src, isActive, onEnded, className, allowAudio, audioUnlo
     prevActiveRef.current = isActive;
     prevSrcRef.current = src;
 
-    const canPlay = isActive && isSectionVisible;
+    const canPlay = isActive && (isSectionVisible ?? true);
 
     if (canPlay) {
       if (becameActive) {
-        video.currentTime = 0; // Reset progress ONLY when the video becomes newly active
+        video.currentTime = 0;
       }
-
-      if (allowAudio) {
-        if (audioUnlocked) {
-          video.muted = false;
-          video.play().catch((err) => {
-            console.log("Unmuted play failed after unlock:", err);
-          });
-        } else {
-          video.muted = false;
-          video.play().catch((err) => {
-            console.log("Initial unmuted play rejected, keeping paused:", err);
-          });
-        }
-      } else {
-        video.muted = true;
-        video.play().catch((err) => {
-          console.log("Autoplay failed:", err);
-        });
-      }
+      video.muted = isMuted;
+      video.play().catch((err) => {
+        console.log("Autoplay failed:", err);
+      });
     } else {
       video.pause();
     }
-  }, [isActive, src, allowAudio, audioUnlocked, isSectionVisible]);
-
-  const handleVideoClick = (e: React.MouseEvent<HTMLVideoElement>) => {
-    const video = e.currentTarget;
-    if (allowAudio) {
-      video.muted = false;
-    } else {
-      video.muted = true;
-    }
-    video.play().catch((err) => console.log("Play on click failed:", err));
-  };
+  }, [isActive, src, isSectionVisible, isMuted]);
 
   const handleTogglePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -494,44 +468,69 @@ function ManagedVideo({ src, isActive, onEnded, className, allowAudio, audioUnlo
     if (!video) return;
 
     if (video.paused) {
-      if (allowAudio) {
-        video.muted = false;
-      } else {
-        video.muted = true;
-      }
+      video.muted = isMuted;
       video.play().catch((err) => console.log("Play from button failed:", err));
     } else {
       video.pause();
     }
   };
 
+  const handleToggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+    video.muted = newMuted;
+    if (!newMuted && video.paused && isActive) {
+      video.play().catch(() => {});
+    }
+  };
+
   return (
-    <div className="relative w-full h-full group">
+    <div className="relative w-full h-full group select-none">
       <video
         ref={videoRef}
         src={src}
-        muted={!allowAudio ? true : undefined}
+        muted={isMuted}
         playsInline
         preload="auto"
         onEnded={onEnded}
-        onClick={handleVideoClick}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         className={className}
       />
       {isActive && (
-        <button
-          type="button"
-          onClick={handleTogglePlay}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-12 h-12 rounded-full bg-black/45 hover:bg-black/60 text-white backdrop-blur-sm transition-all duration-200 hover:scale-105 active:scale-95 z-20 shadow-md border border-white/10 cursor-pointer"
-          aria-label={isPlaying ? "Pause video" : "Play video"}
-        >
-          {isPlaying ? (
-            <Pause className="w-5 h-5 fill-white text-white" />
-          ) : (
-            <Play className="w-5 h-5 fill-white text-white translate-x-[1px]" />
-          )}
-        </button>
+        <>
+          {/* Pause / Play Toggle Button (Center Overlay) */}
+          <button
+            type="button"
+            onClick={handleTogglePlay}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-12 h-12 rounded-full bg-black/55 hover:bg-black/75 text-white backdrop-blur-md transition-all duration-200 hover:scale-110 active:scale-95 z-20 shadow-lg border border-white/20 cursor-pointer"
+            aria-label={isPlaying ? "Pause video" : "Play video"}
+          >
+            {isPlaying ? (
+              <Pause className="w-5 h-5 fill-white text-white" />
+            ) : (
+              <Play className="w-5 h-5 fill-white text-white translate-x-[1px]" />
+            )}
+          </button>
+
+          {/* Sound Mute / Unmute Button (Bottom Right Overlay) */}
+          <button
+            type="button"
+            onClick={handleToggleMute}
+            className="absolute bottom-3 right-3 flex items-center justify-center w-10 h-10 rounded-full bg-black/55 hover:bg-black/75 text-white backdrop-blur-md transition-all duration-200 hover:scale-110 active:scale-95 z-20 shadow-lg border border-white/20 cursor-pointer"
+            aria-label={isMuted ? "Unmute sound" : "Mute sound"}
+          >
+            {isMuted ? (
+              <VolumeX className="w-4 h-4 text-white/80" />
+            ) : (
+              <Volume2 className="w-4 h-4 text-amber-400" />
+            )}
+          </button>
+        </>
       )}
     </div>
   );
@@ -570,6 +569,7 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
   const [transitionEnabled, setTransitionEnabled] = useState(true);
 
   const trackRef = useRef<HTMLDivElement>(null);
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
   const [translateX, setTranslateX] = useState(0);
 
   const sectionRef = useRef<HTMLElement>(null);
@@ -592,10 +592,10 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
     };
   }, []);
 
-  const updatePosition = () => {
+  const updatePosition = (targetIndex = activeIndex) => {
     const track = trackRef.current;
     if (!track) return;
-    const activeSlide = track.children[activeIndex] as HTMLDivElement;
+    const activeSlide = track.children[targetIndex] as HTMLDivElement;
     if (!activeSlide) return;
 
     const trackRect = track.getBoundingClientRect();
@@ -610,7 +610,7 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
   };
 
   useLayoutEffect(() => {
-    updatePosition();
+    updatePosition(activeIndex);
   }, [activeIndex, displayList]);
 
   useEffect(() => {
@@ -618,7 +618,7 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
     const handleResize = () => {
       cancelAnimationFrame(resizeTimer);
       resizeTimer = requestAnimationFrame(() => {
-        updatePosition();
+        updatePosition(activeIndex);
       });
     };
 
@@ -650,6 +650,52 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
     loadVideos();
   }, []);
 
+  const handleCardClick = (idx: number) => {
+    if (idx !== activeIndex) {
+      setActiveIndex(idx);
+      setPlayingIndex(idx);
+    }
+  };
+
+  const handleMobileScroll = () => {
+    const container = mobileScrollRef.current;
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const containerCenter = containerRect.left + containerRect.width / 2;
+
+    let closestIdx = activeIndex;
+    let minDistance = Infinity;
+
+    Array.from(container.children).forEach((child, idx) => {
+      const childRect = child.getBoundingClientRect();
+      const childCenter = childRect.left + childRect.width / 2;
+      const dist = Math.abs(childCenter - containerCenter);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestIdx = idx;
+      }
+    });
+
+    if (closestIdx !== activeIndex) {
+      setActiveIndex(closestIdx);
+      setPlayingIndex(closestIdx);
+    }
+  };
+
+  const handleMobileCardClick = (idx: number) => {
+    setActiveIndex(idx);
+    setPlayingIndex(idx);
+    const container = mobileScrollRef.current;
+    if (container && container.children[idx]) {
+      (container.children[idx] as HTMLElement).scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  };
+
   if (loading || videos.length === 0) return null;
 
   const handleEnded = () => {
@@ -674,7 +720,7 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
       });
 
       requestAnimationFrame(() => {
-        updatePosition();
+        updatePosition(1);
         setTimeout(() => {
           setTransitionEnabled(true);
         }, 50);
@@ -688,7 +734,9 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
         <p className="eyebrow mb-3 font-bold text-[#C9A84C]">Customer Voices</p>
         <h2 className="font-display text-3xl md:text-5xl">Reviews from the Community</h2>
       </div>
-      <div className="relative w-full overflow-hidden py-4">
+
+      {/* Desktop Track (>= 768px) with smooth animated transform */}
+      <div className="hidden md:block relative w-full overflow-hidden py-4">
         <div
           ref={trackRef}
           className="flex gap-6"
@@ -704,16 +752,15 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
             return (
               <div
                 key={item.keyId}
-                className={`relative review-video-card aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 ${
-                  isActive ? "opacity-100 scale-100" : "opacity-40 scale-95"
+                onClick={() => handleCardClick(idx)}
+                className={`relative review-video-card aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 cursor-pointer ${
+                  isActive ? "opacity-100 scale-100" : "opacity-40 scale-95 hover:opacity-70"
                 }`}
               >
                 <ManagedVideo
                   src={getCloudinaryUrl(item.content.address)}
                   isActive={isPlaying}
                   onEnded={handleEnded}
-                  allowAudio={true}
-                  audioUnlocked={audioUnlocked}
                   isSectionVisible={sectionVisible}
                   className="w-full h-full object-cover"
                 />
@@ -721,6 +768,36 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
             );
           })}
         </div>
+      </div>
+
+      {/* Mobile Track (< 768px) with native touch horizontal scroll & snap */}
+      <div
+        ref={mobileScrollRef}
+        onScroll={handleMobileScroll}
+        className="flex md:hidden overflow-x-auto scrollbar-none snap-x snap-mandatory gap-4 px-6 py-4 w-full cursor-grab active:cursor-grabbing"
+      >
+        {displayList.map((item, idx) => {
+          const isActive = idx === activeIndex;
+          const isPlaying = idx === playingIndex;
+
+          return (
+            <div
+              key={`mobile-${item.keyId}`}
+              onClick={() => handleMobileCardClick(idx)}
+              className={`snap-center shrink-0 w-[270px] aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden transition-all duration-300 ${
+                isActive ? "opacity-100 scale-100 ring-2 ring-[#C9A84C]/50" : "opacity-50 scale-95"
+              }`}
+            >
+              <ManagedVideo
+                src={getCloudinaryUrl(item.content.address)}
+                isActive={isPlaying}
+                onEnded={handleEnded}
+                isSectionVisible={sectionVisible}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -735,6 +812,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
   const [transitionEnabled, setTransitionEnabled] = useState(true);
 
   const trackRef = useRef<HTMLDivElement>(null);
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
   const singleVideoRef = useRef<HTMLDivElement>(null);
   const [translateX, setTranslateX] = useState(0);
 
@@ -758,10 +836,10 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
     };
   }, []);
 
-  const updatePosition = () => {
+  const updatePosition = (targetIndex = activeIndex) => {
     const track = trackRef.current;
     if (!track) return;
-    const activeSlide = track.children[activeIndex] as HTMLDivElement;
+    const activeSlide = track.children[targetIndex] as HTMLDivElement;
     if (!activeSlide) return;
 
     const trackRect = track.getBoundingClientRect();
@@ -777,7 +855,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
 
   useLayoutEffect(() => {
     if (videos.length >= 2) {
-      updatePosition();
+      updatePosition(activeIndex);
     }
   }, [activeIndex, displayList, videos]);
 
@@ -787,7 +865,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
       if (videos.length >= 2) {
         cancelAnimationFrame(resizeTimer);
         resizeTimer = requestAnimationFrame(() => {
-          updatePosition();
+          updatePosition(activeIndex);
         });
       }
     };
@@ -839,6 +917,52 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
     loadVideos();
   }, []);
 
+  const handleCardClick = (idx: number) => {
+    if (idx !== activeIndex) {
+      setActiveIndex(idx);
+      setPlayingIndex(idx);
+    }
+  };
+
+  const handleMobileScroll = () => {
+    const container = mobileScrollRef.current;
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const containerCenter = containerRect.left + containerRect.width / 2;
+
+    let closestIdx = activeIndex;
+    let minDistance = Infinity;
+
+    Array.from(container.children).forEach((child, idx) => {
+      const childRect = child.getBoundingClientRect();
+      const childCenter = childRect.left + childRect.width / 2;
+      const dist = Math.abs(childCenter - containerCenter);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestIdx = idx;
+      }
+    });
+
+    if (closestIdx !== activeIndex) {
+      setActiveIndex(closestIdx);
+      setPlayingIndex(closestIdx);
+    }
+  };
+
+  const handleMobileCardClick = (idx: number) => {
+    setActiveIndex(idx);
+    setPlayingIndex(idx);
+    const container = mobileScrollRef.current;
+    if (container && container.children[idx]) {
+      (container.children[idx] as HTMLElement).scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  };
+
   if (loading || videos.length === 0) return null;
 
   if (videos.length === 1) {
@@ -865,8 +989,6 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
                   video.play().catch((err) => console.log("Replay failed:", err));
                 }
               }}
-              allowAudio={false}
-              audioUnlocked={audioUnlocked}
               isSectionVisible={sectionVisible}
               className="w-full h-full object-cover"
             />
@@ -898,7 +1020,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
       });
 
       requestAnimationFrame(() => {
-        updatePosition();
+        updatePosition(1);
         setTimeout(() => {
           setTransitionEnabled(true);
         }, 50);
@@ -912,7 +1034,9 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
         <p className="eyebrow mb-3 font-bold text-[#C9A84C]">Brand Story</p>
         <h2 className="font-display text-3xl md:text-5xl">Experience Our Collection</h2>
       </div>
-      <div className="relative w-full overflow-hidden py-4">
+
+      {/* Desktop Track (>= 768px) with smooth animated transform */}
+      <div className="hidden md:block relative w-full overflow-hidden py-4">
         <div
           ref={trackRef}
           className="flex gap-6"
@@ -928,16 +1052,15 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
             return (
               <div
                 key={item.keyId}
-                className={`relative experience-video-card aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 ${
-                  isActive ? "opacity-100 scale-100" : "opacity-40 scale-95"
+                onClick={() => handleCardClick(idx)}
+                className={`relative experience-video-card aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 cursor-pointer ${
+                  isActive ? "opacity-100 scale-100" : "opacity-40 scale-95 hover:opacity-70"
                 }`}
               >
                 <ManagedVideo
                   src={getCloudinaryUrl(item.content.address)}
                   isActive={isPlaying}
                   onEnded={handleEnded}
-                  allowAudio={false}
-                  audioUnlocked={audioUnlocked}
                   isSectionVisible={sectionVisible}
                   className="w-full h-full object-cover"
                 />
@@ -945,6 +1068,36 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
             );
           })}
         </div>
+      </div>
+
+      {/* Mobile Track (< 768px) with native touch horizontal scroll & snap */}
+      <div
+        ref={mobileScrollRef}
+        onScroll={handleMobileScroll}
+        className="flex md:hidden overflow-x-auto scrollbar-none snap-x snap-mandatory gap-4 px-6 py-4 w-full cursor-grab active:cursor-grabbing"
+      >
+        {displayList.map((item, idx) => {
+          const isActive = idx === activeIndex;
+          const isPlaying = idx === playingIndex;
+
+          return (
+            <div
+              key={`mobile-${item.keyId}`}
+              onClick={() => handleMobileCardClick(idx)}
+              className={`snap-center shrink-0 w-[270px] aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden transition-all duration-300 ${
+                isActive ? "opacity-100 scale-100 ring-2 ring-[#C9A84C]/50" : "opacity-50 scale-95"
+              }`}
+            >
+              <ManagedVideo
+                src={getCloudinaryUrl(item.content.address)}
+                isActive={isPlaying}
+                onEnded={handleEnded}
+                isSectionVisible={sectionVisible}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          );
+        })}
       </div>
     </section>
   );
