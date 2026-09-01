@@ -980,8 +980,8 @@ export default function Home() {
       <Departments />
       <CategoryProductsSection />
       <HeroCinematicScroll />
-      <ReviewVideosSection audioUnlocked={audioUnlocked} />
       <ExperienceCollectionVideosSection audioUnlocked={audioUnlocked} />
+      <ReviewVideosSection audioUnlocked={audioUnlocked} />
     </main>
   );
 }
