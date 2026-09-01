@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trash2, Loader2, UploadCloud, X, Film, Image as ImageIcon } from "lucide-react";
 import { getCloudinaryUrl } from "@/lib/utils";
+import { OptimizedCloudinaryVideo } from "@/components/shared/OptimizedCloudinaryVideo";
 
 export default function AdminMedia() {
   const queryClient = useQueryClient();
@@ -279,10 +280,10 @@ export default function AdminMedia() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {reviewVideos.map((v) => (
                 <div key={v.id} className="relative aspect-[3/4] border border-gray-200 group overflow-hidden bg-neutral-900">
-                  <video src={getCloudinaryUrl(v.address)} controls className="w-full h-full object-cover" />
+                  <OptimizedCloudinaryVideo src={v.address} isActive={false} width={360} aspectRatioClass="aspect-[3/4]" />
                   <button
                     onClick={() => handleDeleteMedia(v.id)}
-                    className="absolute top-2 right-2 bg-black/80 hover:bg-red-600 text-white p-1.5 transition-colors cursor-pointer z-10"
+                    className="absolute top-2 right-2 bg-black/80 hover:bg-red-600 text-white p-1.5 transition-colors cursor-pointer z-40"
                     title="Delete Video"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -306,10 +307,10 @@ export default function AdminMedia() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {experienceVideos.map((v) => (
                 <div key={v.id} className="relative aspect-video border border-gray-200 group overflow-hidden bg-neutral-900">
-                  <video src={getCloudinaryUrl(v.address)} controls className="w-full h-full object-cover" />
+                  <OptimizedCloudinaryVideo src={v.address} isActive={false} width={480} aspectRatioClass="aspect-video" />
                   <button
                     onClick={() => handleDeleteMedia(v.id)}
-                    className="absolute top-2 right-2 bg-black/80 hover:bg-red-600 text-white p-1.5 transition-colors cursor-pointer z-10"
+                    className="absolute top-2 right-2 bg-black/80 hover:bg-red-600 text-white p-1.5 transition-colors cursor-pointer z-40"
                     title="Delete Video"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

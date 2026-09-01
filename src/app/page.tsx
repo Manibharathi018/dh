@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowRight, Heart, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import HeroCinematicScroll from "@/components/HeroCinematicScroll";
+import { OptimizedCloudinaryVideo } from "@/components/shared/OptimizedCloudinaryVideo";
 import { productService } from "@/services/productService";
 import { categoryService, CategoryDTO } from "@/services/categoryService";
 import { mediaService, MediaContent } from "@/services/mediaService";
@@ -433,106 +434,15 @@ interface VideoCardProps {
 }
 
 function ManagedVideo({ src, isActive, onEnded, className, isSectionVisible }: VideoCardProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const prevActiveRef = useRef<boolean>(false);
-  const prevSrcRef = useRef<string>("");
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const becameActive = isActive && (!prevActiveRef.current || prevSrcRef.current !== src);
-    prevActiveRef.current = isActive;
-    prevSrcRef.current = src;
-
-    const canPlay = isActive && (isSectionVisible ?? true);
-
-    if (canPlay) {
-      if (becameActive) {
-        video.currentTime = 0;
-      }
-      video.muted = isMuted;
-      video.play().catch((err) => {
-        console.log("Autoplay failed:", err);
-      });
-    } else {
-      video.pause();
-    }
-  }, [isActive, src, isSectionVisible, isMuted]);
-
-  const handleTogglePlay = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (video.paused) {
-      video.muted = isMuted;
-      video.play().catch((err) => console.log("Play from button failed:", err));
-    } else {
-      video.pause();
-    }
-  };
-
-  const handleToggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
-
-    const newMuted = !isMuted;
-    setIsMuted(newMuted);
-    video.muted = newMuted;
-    if (!newMuted && video.paused && isActive) {
-      video.play().catch(() => {});
-    }
-  };
-
   return (
-    <div className="relative w-full h-full group select-none">
-      <video
-        ref={videoRef}
-        src={src}
-        muted={isMuted}
-        playsInline
-        preload="auto"
-        onEnded={onEnded}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        className={className}
-      />
-      {isActive && (
-        <>
-          {/* Pause / Play Toggle Button (Center Overlay) */}
-          <button
-            type="button"
-            onClick={handleTogglePlay}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-12 h-12 rounded-full bg-black/55 hover:bg-black/75 text-white backdrop-blur-md transition-all duration-200 hover:scale-110 active:scale-95 z-20 shadow-lg border border-white/20 cursor-pointer"
-            aria-label={isPlaying ? "Pause video" : "Play video"}
-          >
-            {isPlaying ? (
-              <Pause className="w-5 h-5 fill-white text-white" />
-            ) : (
-              <Play className="w-5 h-5 fill-white text-white translate-x-[1px]" />
-            )}
-          </button>
-
-          {/* Sound Mute / Unmute Button (Bottom Right Overlay) */}
-          <button
-            type="button"
-            onClick={handleToggleMute}
-            className="absolute bottom-3 right-3 flex items-center justify-center w-10 h-10 rounded-full bg-black/55 hover:bg-black/75 text-white backdrop-blur-md transition-all duration-200 hover:scale-110 active:scale-95 z-20 shadow-lg border border-white/20 cursor-pointer"
-            aria-label={isMuted ? "Unmute sound" : "Mute sound"}
-          >
-            {isMuted ? (
-              <VolumeX className="w-4 h-4 text-white/80" />
-            ) : (
-              <Volume2 className="w-4 h-4 text-amber-400" />
-            )}
-          </button>
-        </>
-      )}
-    </div>
+    <OptimizedCloudinaryVideo
+      src={src}
+      isActive={isActive}
+      onEnded={onEnded}
+      className={className}
+      isSectionVisible={isSectionVisible}
+      width={480}
+    />
   );
 }
 
@@ -543,7 +453,7 @@ interface DisplayItem {
 
 const getInitialDisplayList = (list: MediaContent[]): DisplayItem[] => {
   if (list.length === 0) return [];
-  if (list.length === 1) return [{ keyId: `item-${list[0].id}-0`, content: list[0] }];
+  if (list.length === 1) return [{ keyId: `item-${list[0].id}`, content: list[0] }];
   
   let baseList = [...list];
   if (list.length === 2) {
@@ -555,7 +465,7 @@ const getInitialDisplayList = (list: MediaContent[]): DisplayItem[] => {
   }
   
   return baseList.map((content, idx) => ({
-    keyId: `item-${content.id}-${idx}`,
+    keyId: `item-${content.id}-pos${idx}`,
     content
   }));
 };
@@ -567,6 +477,7 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
   const [activeIndex, setActiveIndex] = useState(1);
   const [playingIndex, setPlayingIndex] = useState(1);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
+  const [isDesktop, setIsDesktop] = useState(true);
 
   const trackRef = useRef<HTMLDivElement>(null);
   const mobileScrollRef = useRef<HTMLDivElement>(null);
@@ -574,6 +485,15 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
 
   const sectionRef = useRef<HTMLElement>(null);
   const [sectionVisible, setSectionVisible] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 768px)");
+    setIsDesktop(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -758,10 +678,10 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
                 }`}
               >
                 <ManagedVideo
-                  src={getCloudinaryUrl(item.content.address)}
+                  src={item.content.address}
                   isActive={isPlaying}
                   onEnded={handleEnded}
-                  isSectionVisible={sectionVisible}
+                  isSectionVisible={sectionVisible && isDesktop}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -789,10 +709,10 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
               }`}
             >
               <ManagedVideo
-                src={getCloudinaryUrl(item.content.address)}
+                src={item.content.address}
                 isActive={isPlaying}
                 onEnded={handleEnded}
-                isSectionVisible={sectionVisible}
+                isSectionVisible={sectionVisible && !isDesktop}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -810,6 +730,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
   const [activeIndex, setActiveIndex] = useState(1);
   const [playingIndex, setPlayingIndex] = useState(1);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
+  const [isDesktop, setIsDesktop] = useState(true);
 
   const trackRef = useRef<HTMLDivElement>(null);
   const mobileScrollRef = useRef<HTMLDivElement>(null);
@@ -818,6 +739,15 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
 
   const sectionRef = useRef<HTMLElement>(null);
   const [sectionVisible, setSectionVisible] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 768px)");
+    setIsDesktop(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -980,7 +910,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
             style={{ opacity: 1 }}
           >
             <ManagedVideo
-              src={getCloudinaryUrl(item.address)}
+              src={item.address}
               isActive={sectionVisible}
               onEnded={() => {
                 const video = singleVideoRef.current?.querySelector("video");
@@ -1058,10 +988,10 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
                 }`}
               >
                 <ManagedVideo
-                  src={getCloudinaryUrl(item.content.address)}
+                  src={item.content.address}
                   isActive={isPlaying}
                   onEnded={handleEnded}
-                  isSectionVisible={sectionVisible}
+                  isSectionVisible={sectionVisible && isDesktop}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -1089,10 +1019,10 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
               }`}
             >
               <ManagedVideo
-                src={getCloudinaryUrl(item.content.address)}
+                src={item.content.address}
                 isActive={isPlaying}
                 onEnded={handleEnded}
-                isSectionVisible={sectionVisible}
+                isSectionVisible={sectionVisible && !isDesktop}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -1102,6 +1032,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
     </section>
   );
 }
+
 
 export default function Home() {
   const [audioUnlocked, setAudioUnlocked] = useState(false);
