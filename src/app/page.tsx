@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Heart, Play, Pause } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import HeroCinematicScroll from "@/components/HeroCinematicScroll";
 import { productService } from "@/services/productService";
 import { categoryService, CategoryDTO } from "@/services/categoryService";
 import { mediaService, MediaContent } from "@/services/mediaService";
@@ -978,6 +979,7 @@ export default function Home() {
       <FeaturedProducts />
       <Departments />
       <CategoryProductsSection />
+      <HeroCinematicScroll />
       <ReviewVideosSection audioUnlocked={audioUnlocked} />
       <ExperienceCollectionVideosSection audioUnlocked={audioUnlocked} />
     </main>
