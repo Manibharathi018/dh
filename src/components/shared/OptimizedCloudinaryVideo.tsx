@@ -37,10 +37,12 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
   const [isMuted, setIsMuted] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [useFallbackSrc, setUseFallbackSrc] = useState(false);
 
   // Optimized Cloudinary URLs
   const videoUrl = getCloudinaryVideoUrl(src, { width });
   const computedPoster = posterSrc || getCloudinaryPosterUrl(src, { width });
+  const activeVideoUrl = useFallbackSrc ? src : videoUrl;
 
   // IntersectionObserver 1: Near Viewport (preload metadata / prepare video element)
   useEffect(() => {
@@ -108,7 +110,7 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
       const playPromise = video.play();
       if (playPromise !== undefined) {
         playPromise.catch((err) => {
-          // Auto-play was prevented or interrupted safely
+          // Auto-play was prevented or interrupted safely (AbortError is expected on scroll/pause)
           if (err.name !== "AbortError") {
             console.log("[OptimizedCloudinaryVideo] Play pending/fallback:", err);
           }
@@ -119,7 +121,28 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
         video.pause();
       }
     }
-  }, [isActive, isInViewport, isSectionVisible, isNearViewport, isMuted, hasError]);
+  }, [isActive, isInViewport, isSectionVisible, isNearViewport, isMuted, hasError, activeVideoUrl]);
+
+  const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Ignore aborted requests (code 1) or empty src during scroll/unmount cleanup
+    if (!video.src || !video.error || video.error.code === 1) {
+      return;
+    }
+
+    console.warn("[OptimizedCloudinaryVideo] Media error code:", video.error.code, video.error.message);
+
+    // If transformed Cloudinary URL failed, try fallback to original raw URL first!
+    if (!useFallbackSrc && src && src !== videoUrl) {
+      console.log("[OptimizedCloudinaryVideo] Retrying with raw video source fallback...");
+      setUseFallbackSrc(true);
+      return;
+    }
+
+    setHasError(true);
+  };
 
   const handleTogglePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -151,6 +174,7 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
     e.stopPropagation();
     setHasError(false);
     setIsLoaded(false);
+    setUseFallbackSrc(true); // Retry with raw fallback URL
     const video = videoRef.current;
     if (video) {
       video.load();
@@ -182,16 +206,19 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
       {isNearViewport && !hasError && (
         <video
           ref={videoRef}
-          src={videoUrl}
+          src={activeVideoUrl}
           poster={computedPoster}
           muted={isMuted}
           playsInline
           preload={preloadSetting}
           onEnded={onEnded}
-          onCanPlay={() => setIsLoaded(true)}
+          onCanPlay={() => {
+            setIsLoaded(true);
+            setHasError(false);
+          }}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
-          onError={() => setHasError(true)}
+          onError={handleVideoError}
           className={`relative z-10 ${className} transition-opacity duration-300 ${
             isLoaded ? "opacity-100" : "opacity-0"
           }`}
@@ -248,4 +275,5 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
     </div>
   );
 });
+
 
