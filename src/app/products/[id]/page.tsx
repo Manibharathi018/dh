@@ -123,7 +123,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   }
 
   const sizes = product.hasDressSizes
-    ? ["S", "M", "L", "XL", "XXL"]
+    ? ["S", "M", "L", "XL", "XXL", "3XL", "4XL"]
     : product.hasShoeSizes
     ? ["7", "8", "9", "10", "11", "12", "13"]
     : [];
@@ -135,6 +135,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       if (size === "L") return product.sizeLQuantity || 0;
       if (size === "XL") return product.sizeXLQuantity || 0;
       if (size === "XXL") return product.sizeXXLQuantity || 0;
+      if (size === "3XL") return product.size3XLQuantity || 0;
+      if (size === "4XL") return product.size4XLQuantity || 0;
     }
     if (product.hasShoeSizes) {
       if (size === "7") return product.size7Quantity || 0;

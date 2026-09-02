@@ -18,6 +18,8 @@ export default function CartPage() {
         case "L": return item.product.sizeLQuantity || 0;
         case "XL": return item.product.sizeXLQuantity || 0;
         case "XXL": return item.product.sizeXXLQuantity || 0;
+        case "3XL": return item.product.size3XLQuantity || 0;
+        case "4XL": return item.product.size4XLQuantity || 0;
         default: return 0;
       }
     }

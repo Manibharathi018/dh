@@ -41,6 +41,8 @@ export interface Product {
   sizeLQuantity?: number;
   sizeXLQuantity?: number;
   sizeXXLQuantity?: number;
+  size3XLQuantity?: number;
+  size4XLQuantity?: number;
   size7Quantity?: number;
   size8Quantity?: number;
   size9Quantity?: number;

@@ -53,6 +53,8 @@ const productSchema = z.object({
   sizeLQuantity: z.coerce.number().min(0).optional(),
   sizeXLQuantity: z.coerce.number().min(0).optional(),
   sizeXXLQuantity: z.coerce.number().min(0).optional(),
+  size3XLQuantity: z.coerce.number().min(0).optional(),
+  size4XLQuantity: z.coerce.number().min(0).optional(),
   size7Quantity: z.coerce.number().min(0).optional(),
   size8Quantity: z.coerce.number().min(0).optional(),
   size9Quantity: z.coerce.number().min(0).optional(),
@@ -135,6 +137,8 @@ export default function AdminProducts() {
       sizeLQuantity: 0,
       sizeXLQuantity: 0,
       sizeXXLQuantity: 0,
+      size3XLQuantity: 0,
+      size4XLQuantity: 0,
       size7Quantity: 0,
       size8Quantity: 0,
       size9Quantity: 0,
@@ -354,7 +358,9 @@ export default function AdminProducts() {
                  Number(data.sizeMQuantity || 0) +
                  Number(data.sizeLQuantity || 0) +
                  Number(data.sizeXLQuantity || 0) +
-                 Number(data.sizeXXLQuantity || 0);
+                 Number(data.sizeXXLQuantity || 0) +
+                 Number(data.size3XLQuantity || 0) +
+                 Number(data.size4XLQuantity || 0);
     } else if (data.hasShoeSizes) {
       finalQty = Number(data.size7Quantity || 0) +
                  Number(data.size8Quantity || 0) +
@@ -380,6 +386,8 @@ export default function AdminProducts() {
       sizeLQuantity: data.hasDressSizes ? Number(data.sizeLQuantity || 0) : 0,
       sizeXLQuantity: data.hasDressSizes ? Number(data.sizeXLQuantity || 0) : 0,
       sizeXXLQuantity: data.hasDressSizes ? Number(data.sizeXXLQuantity || 0) : 0,
+      size3XLQuantity: data.hasDressSizes ? Number(data.size3XLQuantity || 0) : 0,
+      size4XLQuantity: data.hasDressSizes ? Number(data.size4XLQuantity || 0) : 0,
       size7Quantity: data.hasShoeSizes ? Number(data.size7Quantity || 0) : 0,
       size8Quantity: data.hasShoeSizes ? Number(data.size8Quantity || 0) : 0,
       size9Quantity: data.hasShoeSizes ? Number(data.size9Quantity || 0) : 0,
@@ -476,6 +484,8 @@ export default function AdminProducts() {
       sizeLQuantity: 0,
       sizeXLQuantity: 0,
       sizeXXLQuantity: 0,
+      size3XLQuantity: 0,
+      size4XLQuantity: 0,
       size7Quantity: 0,
       size8Quantity: 0,
       size9Quantity: 0,
@@ -525,6 +535,8 @@ export default function AdminProducts() {
       sizeLQuantity: product.sizeLQuantity || 0,
       sizeXLQuantity: product.sizeXLQuantity || 0,
       sizeXXLQuantity: product.sizeXXLQuantity || 0,
+      size3XLQuantity: product.size3XLQuantity || 0,
+      size4XLQuantity: product.size4XLQuantity || 0,
       size7Quantity: product.size7Quantity || 0,
       size8Quantity: product.size8Quantity || 0,
       size9Quantity: product.size9Quantity || 0,
@@ -842,7 +854,7 @@ export default function AdminProducts() {
                         }}
                       />
                       <span className="text-xs uppercase tracking-wider font-semibold text-black">
-                        Has Clothing/Dress Sizes (S, M, L, XL, XXL)
+                        Has Clothing/Dress Sizes (S, M, L, XL, XXL, 3XL, 4XL)
                       </span>
                     </label>
 
@@ -868,7 +880,7 @@ export default function AdminProducts() {
                       <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
                         Quantity Per Clothing Size *
                       </Label>
-                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 p-4 border border-neutral-200 bg-neutral-50/50">
+                      <div className="grid grid-cols-2 sm:grid-cols-7 gap-3 p-4 border border-neutral-200 bg-neutral-50/50">
                         {/* Size S */}
                         <div className="space-y-1">
                           <Label htmlFor="sizeSQuantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">S Qty</Label>
@@ -894,6 +906,16 @@ export default function AdminProducts() {
                           <Label htmlFor="sizeXXLQuantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">XXL Qty</Label>
                           <Input id="sizeXXLQuantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("sizeXXLQuantity")} />
                         </div>
+                        {/* Size 3XL */}
+                        <div className="space-y-1">
+                          <Label htmlFor="size3XLQuantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">3XL Qty</Label>
+                          <Input id="size3XLQuantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("size3XLQuantity")} />
+                        </div>
+                        {/* Size 4XL */}
+                        <div className="space-y-1">
+                          <Label htmlFor="size4XLQuantity" className="text-[10px] uppercase tracking-wider text-muted-foreground">4XL Qty</Label>
+                          <Input id="size4XLQuantity" type="number" min="0" placeholder="0" className="rounded-none border-gray-300 h-10 font-mono focus:border-black bg-white" {...register("size4XLQuantity")} />
+                        </div>
                       </div>
                       <p className="text-[10px] text-gray-500 font-mono">
                         Calculated Total Stock: {
@@ -901,7 +923,9 @@ export default function AdminProducts() {
                           Number(watch("sizeMQuantity") || 0) +
                           Number(watch("sizeLQuantity") || 0) +
                           Number(watch("sizeXLQuantity") || 0) +
-                          Number(watch("sizeXXLQuantity") || 0)
+                          Number(watch("sizeXXLQuantity") || 0) +
+                          Number(watch("size3XLQuantity") || 0) +
+                          Number(watch("size4XLQuantity") || 0)
                         } units
                       </p>
                     </div>
@@ -1302,7 +1326,7 @@ export default function AdminProducts() {
                           </span>
                           {product.hasDressSizes && (
                             <span className="text-[10px] text-gray-400 font-mono mt-0.5">
-                              S:{product.sizeSQuantity || 0} | M:{product.sizeMQuantity || 0} | L:{product.sizeLQuantity || 0} | XL:{product.sizeXLQuantity || 0} | XXL:{product.sizeXXLQuantity || 0}
+                              S:{product.sizeSQuantity || 0} | M:{product.sizeMQuantity || 0} | L:{product.sizeLQuantity || 0} | XL:{product.sizeXLQuantity || 0} | XXL:{product.sizeXXLQuantity || 0} | 3XL:{product.size3XLQuantity || 0} | 4XL:{product.size4XLQuantity || 0}
                             </span>
                           )}
                           {product.hasShoeSizes && (
