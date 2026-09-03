@@ -101,9 +101,9 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
   // Handle Video Play / Pause Lifecycle
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !isNearViewport) return;
+    if (!video || (!isNearViewport && !isSectionVisible)) return;
 
-    const shouldPlay = isActive && isInViewport && isSectionVisible && !hasError;
+    const shouldPlay = isActive && (isInViewport || isSectionVisible) && !hasError;
 
     if (shouldPlay) {
       video.muted = isMuted;
@@ -127,17 +127,17 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
     }
   }, [isActive, isInViewport, isSectionVisible, isNearViewport, hasError, activeVideoUrl]);
 
-  const handleCanPlay = () => {
+  const handleLoadedData = () => {
     setIsLoaded(true);
     setHasError(false);
     const video = videoRef.current;
     if (video) {
-      const shouldPlay = isActive && isInViewport && isSectionVisible && !hasError;
+      video.muted = isMuted;
+      const shouldPlay = isActive && (isInViewport || isSectionVisible) && !hasError;
       if (shouldPlay && video.paused) {
-        video.muted = isMuted;
         video.play().catch((err) => {
           if (err.name !== "AbortError") {
-            console.log("[OptimizedCloudinaryVideo] Play onCanPlay fallback:", err);
+            console.log("[OptimizedCloudinaryVideo] Play handleLoadedData fallback:", err);
           }
         });
       }
@@ -206,7 +206,7 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
   };
 
   // Determine optimal preload setting (auto for active/near videos to eliminate buffering delay)
-  const preloadSetting = isActive || isNearViewport ? "auto" : "metadata";
+  const preloadSetting = isActive || isNearViewport || isSectionVisible ? "auto" : "metadata";
 
   return (
     <div
@@ -225,17 +225,20 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
         />
       )}
 
-      {/* 2. Video Element (Only rendered into DOM when near viewport) */}
-      {isNearViewport && !hasError && (
+      {/* 2. Video Element (Rendered into DOM when near or section visible) */}
+      {(isNearViewport || isSectionVisible) && !hasError && (
         <video
           ref={videoRef}
           src={activeVideoUrl}
           poster={computedPoster}
+          autoPlay={isActive}
           muted={isMuted}
           playsInline
           preload={preloadSetting}
           onEnded={onEnded}
-          onCanPlay={handleCanPlay}
+          onCanPlay={handleLoadedData}
+          onLoadedData={handleLoadedData}
+          onLoadedMetadata={handleLoadedData}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
           onError={handleVideoError}
