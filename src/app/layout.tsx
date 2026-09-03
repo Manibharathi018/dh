@@ -27,6 +27,14 @@ export const metadata: Metadata = {
   },
   description: "Shop premium fashion at factory prices. Discover the latest collections for men and women.",
   keywords: ["fashion", "factory outlet", "clothing", "premium fashion", "Dhanya"],
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     title: "DHANYA Factory Outlet",
     description: "Premium Fashion. Factory Prices.",
