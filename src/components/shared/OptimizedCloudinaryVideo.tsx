@@ -44,7 +44,7 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
   const computedPoster = posterSrc || getCloudinaryPosterUrl(src, { width });
   const activeVideoUrl = useFallbackSrc ? src : videoUrl;
 
-  // IntersectionObserver 1: Near Viewport (preload metadata / prepare video element)
+  // IntersectionObserver 1: Near Viewport (preload video element 500px before section appears)
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -61,14 +61,14 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
           setIsNearViewport(true);
         }
       },
-      { rootMargin: "200px 0px" } // Prepare video element within 200px of viewport
+      { rootMargin: "500px 0px" } // Pre-mount video element 500px before reaching section
     );
 
     nearObserver.observe(el);
     return () => nearObserver.disconnect();
   }, []);
 
-  // IntersectionObserver 2: In Viewport (trigger play/pause as soon as section appears)
+  // IntersectionObserver 2: In Viewport (trigger instant autoplay as soon as section enters screen)
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -79,7 +79,7 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
       ([entry]) => {
         setIsInViewport(entry.isIntersecting);
       },
-      { threshold: 0.1 } // Trigger autoplay as soon as 10% of section appears
+      { threshold: 0 } // Instantly trigger as soon as section enters viewport
     );
 
     viewportObserver.observe(el);
@@ -114,7 +114,6 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
         const playPromise = video.play();
         if (playPromise !== undefined) {
           playPromise.catch((err) => {
-            // Auto-play was prevented or interrupted safely (AbortError is expected on scroll/pause)
             if (err.name !== "AbortError") {
               console.log("[OptimizedCloudinaryVideo] Play pending/fallback:", err);
             }
@@ -127,6 +126,23 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
       }
     }
   }, [isActive, isInViewport, isSectionVisible, isNearViewport, hasError, activeVideoUrl]);
+
+  const handleCanPlay = () => {
+    setIsLoaded(true);
+    setHasError(false);
+    const video = videoRef.current;
+    if (video) {
+      const shouldPlay = isActive && isInViewport && isSectionVisible && !hasError;
+      if (shouldPlay && video.paused) {
+        video.muted = isMuted;
+        video.play().catch((err) => {
+          if (err.name !== "AbortError") {
+            console.log("[OptimizedCloudinaryVideo] Play onCanPlay fallback:", err);
+          }
+        });
+      }
+    }
+  };
 
   const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
     const video = videoRef.current;
@@ -189,8 +205,8 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
     }
   };
 
-  // Determine optimal preload setting
-  const preloadSetting = isActive && isInViewport ? "auto" : isNearViewport ? "metadata" : "none";
+  // Determine optimal preload setting (auto for active/near videos to eliminate buffering delay)
+  const preloadSetting = isActive || isNearViewport ? "auto" : "metadata";
 
   return (
     <div
@@ -219,10 +235,7 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
           playsInline
           preload={preloadSetting}
           onEnded={onEnded}
-          onCanPlay={() => {
-            setIsLoaded(true);
-            setHasError(false);
-          }}
+          onCanPlay={handleCanPlay}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
           onError={handleVideoError}
