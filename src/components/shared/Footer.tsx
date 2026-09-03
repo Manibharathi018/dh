@@ -83,9 +83,14 @@ export default function Footer() {
             </h3>
             <ul className="space-y-3.5 text-[13px] text-gray-700">
               <li>
-                <Link href="/about" className="hover:text-black transition-colors">
+                <a
+                  href="https://dhanya-fashion-outlet-new.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-black transition-colors"
+                >
                   About Us
-                </Link>
+                </a>
               </li>
               <li>
                 <Link href="/returns" className="hover:text-black transition-colors">
@@ -248,9 +253,14 @@ export default function Footer() {
             {openSections.information && (
               <ul className="pt-3 pb-2 space-y-2.5 text-xs text-gray-600 animate-in fade-in">
                 <li>
-                  <Link href="/about" className="hover:text-black transition-colors block py-1">
+                  <a
+                    href="https://dhanya-fashion-outlet-new.vercel.app/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-black transition-colors block py-1"
+                  >
                     About Us
-                  </Link>
+                  </a>
                 </li>
                 <li>
                   <Link href="/returns" className="hover:text-black transition-colors block py-1">
