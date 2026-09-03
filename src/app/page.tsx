@@ -641,6 +641,14 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
 
       requestAnimationFrame(() => {
         updatePosition(1);
+        const mobileContainer = mobileScrollRef.current;
+        if (mobileContainer && mobileContainer.children[1]) {
+          (mobileContainer.children[1] as HTMLElement).scrollIntoView({
+            behavior: "smooth",
+            inline: "center",
+            block: "nearest",
+          });
+        }
         setTimeout(() => {
           setTransitionEnabled(true);
         }, 50);
@@ -951,6 +959,14 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
 
       requestAnimationFrame(() => {
         updatePosition(1);
+        const mobileContainer = mobileScrollRef.current;
+        if (mobileContainer && mobileContainer.children[1]) {
+          (mobileContainer.children[1] as HTMLElement).scrollIntoView({
+            behavior: "smooth",
+            inline: "center",
+            block: "nearest",
+          });
+        }
         setTimeout(() => {
           setTransitionEnabled(true);
         }, 50);

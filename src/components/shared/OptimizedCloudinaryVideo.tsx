@@ -68,7 +68,7 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
     return () => nearObserver.disconnect();
   }, []);
 
-  // IntersectionObserver 2: In Viewport (trigger play/pause)
+  // IntersectionObserver 2: In Viewport (trigger play/pause as soon as section appears)
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -79,7 +79,7 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
       ([entry]) => {
         setIsInViewport(entry.isIntersecting);
       },
-      { threshold: 0.25 }
+      { threshold: 0.1 } // Trigger autoplay as soon as 10% of section appears
     );
 
     viewportObserver.observe(el);
@@ -107,21 +107,26 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
 
     if (shouldPlay) {
       video.muted = isMuted;
-      const playPromise = video.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          // Auto-play was prevented or interrupted safely (AbortError is expected on scroll/pause)
-          if (err.name !== "AbortError") {
-            console.log("[OptimizedCloudinaryVideo] Play pending/fallback:", err);
-          }
-        });
+      if (video.ended) {
+        video.currentTime = 0;
+      }
+      if (video.paused) {
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            // Auto-play was prevented or interrupted safely (AbortError is expected on scroll/pause)
+            if (err.name !== "AbortError") {
+              console.log("[OptimizedCloudinaryVideo] Play pending/fallback:", err);
+            }
+          });
+        }
       }
     } else {
       if (!video.paused) {
         video.pause();
       }
     }
-  }, [isActive, isInViewport, isSectionVisible, isNearViewport, isMuted, hasError, activeVideoUrl]);
+  }, [isActive, isInViewport, isSectionVisible, isNearViewport, hasError, activeVideoUrl]);
 
   const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
     const video = videoRef.current;
@@ -165,7 +170,9 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
     const nextMuted = !isMuted;
     setIsMuted(nextMuted);
     video.muted = nextMuted;
-    if (!nextMuted && video.paused && isActive) {
+
+    // Unmuting audio should keep the video playing smoothly with sound
+    if (video.paused && isActive && isSectionVisible) {
       video.play().catch(() => {});
     }
   };
