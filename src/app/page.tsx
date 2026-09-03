@@ -477,23 +477,15 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
   const [activeIndex, setActiveIndex] = useState(1);
   const [playingIndex, setPlayingIndex] = useState(1);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
-  const [isDesktop, setIsDesktop] = useState(true);
 
   const trackRef = useRef<HTMLDivElement>(null);
-  const mobileScrollRef = useRef<HTMLDivElement>(null);
   const [translateX, setTranslateX] = useState(0);
 
   const sectionRef = useRef<HTMLElement>(null);
   const [sectionVisible, setSectionVisible] = useState(false);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -577,42 +569,19 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
     }
   };
 
-  const handleMobileScroll = () => {
-    const container = mobileScrollRef.current;
-    if (!container) return;
-
-    const containerRect = container.getBoundingClientRect();
-    const containerCenter = containerRect.left + containerRect.width / 2;
-
-    let closestIdx = activeIndex;
-    let minDistance = Infinity;
-
-    Array.from(container.children).forEach((child, idx) => {
-      const childRect = child.getBoundingClientRect();
-      const childCenter = childRect.left + childRect.width / 2;
-      const dist = Math.abs(childCenter - containerCenter);
-      if (dist < minDistance) {
-        minDistance = dist;
-        closestIdx = idx;
-      }
-    });
-
-    if (closestIdx !== activeIndex) {
-      setActiveIndex(closestIdx);
-      setPlayingIndex(closestIdx);
-    }
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
   };
 
-  const handleMobileCardClick = (idx: number) => {
-    setActiveIndex(idx);
-    setPlayingIndex(idx);
-    const container = mobileScrollRef.current;
-    if (container && container.children[idx]) {
-      (container.children[idx] as HTMLElement).scrollIntoView({
-        behavior: "smooth",
-        inline: "center",
-        block: "nearest",
-      });
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    touchEndX.current = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        handleCardClick(Math.min(activeIndex + 1, displayList.length - 1));
+      } else {
+        handleCardClick(Math.max(activeIndex - 1, 0));
+      }
     }
   };
 
@@ -641,14 +610,6 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
 
       requestAnimationFrame(() => {
         updatePosition(1);
-        const mobileContainer = mobileScrollRef.current;
-        if (mobileContainer && mobileContainer.children[1]) {
-          (mobileContainer.children[1] as HTMLElement).scrollIntoView({
-            behavior: "smooth",
-            inline: "center",
-            block: "nearest",
-          });
-        }
         setTimeout(() => {
           setTransitionEnabled(true);
         }, 50);
@@ -663,11 +624,13 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
         <h2 className="font-display text-3xl md:text-5xl">Reviews from the Community</h2>
       </div>
 
-      {/* Desktop Track (>= 768px) with smooth animated transform */}
-      <div className="hidden md:block relative w-full overflow-hidden py-4">
+      {/* Unified Centered Video Carousel Track */}
+      <div className="relative w-full overflow-hidden py-4">
         <div
           ref={trackRef}
-          className="flex gap-6"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="flex gap-4 md:gap-6"
           style={{
             transition: transitionEnabled ? "transform 700ms ease-in-out" : "none",
             transform: `translate3d(${translateX}px, 0, 0)`,
@@ -681,51 +644,23 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
               <div
                 key={item.keyId}
                 onClick={() => handleCardClick(idx)}
-                className={`relative review-video-card aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 cursor-pointer ${
-                  isActive ? "opacity-100 scale-100" : "opacity-40 scale-95 hover:opacity-70"
+                className={`relative review-video-card aspect-[9/16] bg-neutral-900 rounded-xl shadow-lg overflow-hidden shrink-0 transition-all duration-500 cursor-pointer w-[260px] xs:w-[280px] sm:w-[310px] md:w-[330px] ${
+                  isActive
+                    ? "opacity-100 scale-100 ring-2 ring-[#C9A84C] shadow-2xl z-20"
+                    : "opacity-40 scale-95 hover:opacity-70 z-10"
                 }`}
               >
                 <ManagedVideo
                   src={item.content.address}
                   isActive={isPlaying}
                   onEnded={handleEnded}
-                  isSectionVisible={sectionVisible && isDesktop}
+                  isSectionVisible={sectionVisible}
                   className="w-full h-full object-cover"
                 />
               </div>
             );
           })}
         </div>
-      </div>
-
-      {/* Mobile Track (< 768px) with native touch horizontal scroll & snap */}
-      <div
-        ref={mobileScrollRef}
-        onScroll={handleMobileScroll}
-        className="flex md:hidden overflow-x-auto scrollbar-none snap-x snap-mandatory gap-4 px-6 py-4 w-full cursor-grab active:cursor-grabbing"
-      >
-        {displayList.map((item, idx) => {
-          const isActive = idx === activeIndex;
-          const isPlaying = idx === playingIndex;
-
-          return (
-            <div
-              key={`mobile-${item.keyId}`}
-              onClick={() => handleMobileCardClick(idx)}
-              className={`snap-center shrink-0 w-[270px] aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden transition-all duration-300 ${
-                isActive ? "opacity-100 scale-100 ring-2 ring-[#C9A84C]/50" : "opacity-50 scale-95"
-              }`}
-            >
-              <ManagedVideo
-                src={item.content.address}
-                isActive={isPlaying}
-                onEnded={handleEnded}
-                isSectionVisible={sectionVisible && !isDesktop}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          );
-        })}
       </div>
     </section>
   );
@@ -738,24 +673,16 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
   const [activeIndex, setActiveIndex] = useState(1);
   const [playingIndex, setPlayingIndex] = useState(1);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
-  const [isDesktop, setIsDesktop] = useState(true);
 
   const trackRef = useRef<HTMLDivElement>(null);
-  const mobileScrollRef = useRef<HTMLDivElement>(null);
   const singleVideoRef = useRef<HTMLDivElement>(null);
   const [translateX, setTranslateX] = useState(0);
 
   const sectionRef = useRef<HTMLElement>(null);
   const [sectionVisible, setSectionVisible] = useState(false);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -862,42 +789,19 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
     }
   };
 
-  const handleMobileScroll = () => {
-    const container = mobileScrollRef.current;
-    if (!container) return;
-
-    const containerRect = container.getBoundingClientRect();
-    const containerCenter = containerRect.left + containerRect.width / 2;
-
-    let closestIdx = activeIndex;
-    let minDistance = Infinity;
-
-    Array.from(container.children).forEach((child, idx) => {
-      const childRect = child.getBoundingClientRect();
-      const childCenter = childRect.left + childRect.width / 2;
-      const dist = Math.abs(childCenter - containerCenter);
-      if (dist < minDistance) {
-        minDistance = dist;
-        closestIdx = idx;
-      }
-    });
-
-    if (closestIdx !== activeIndex) {
-      setActiveIndex(closestIdx);
-      setPlayingIndex(closestIdx);
-    }
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
   };
 
-  const handleMobileCardClick = (idx: number) => {
-    setActiveIndex(idx);
-    setPlayingIndex(idx);
-    const container = mobileScrollRef.current;
-    if (container && container.children[idx]) {
-      (container.children[idx] as HTMLElement).scrollIntoView({
-        behavior: "smooth",
-        inline: "center",
-        block: "nearest",
-      });
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    touchEndX.current = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        handleCardClick(Math.min(activeIndex + 1, displayList.length - 1));
+      } else {
+        handleCardClick(Math.max(activeIndex - 1, 0));
+      }
     }
   };
 
@@ -914,7 +818,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
         <div className="relative w-full overflow-hidden py-4 flex justify-center">
           <div
             ref={singleVideoRef}
-            className="relative experience-video-card aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-transform duration-500"
+            className="relative experience-video-card aspect-[9/16] bg-neutral-900 rounded-xl shadow-lg ring-2 ring-[#C9A84C] overflow-hidden shrink-0 transition-transform duration-500 w-[260px] xs:w-[280px] sm:w-[310px] md:w-[330px]"
             style={{ opacity: 1 }}
           >
             <ManagedVideo
@@ -959,14 +863,6 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
 
       requestAnimationFrame(() => {
         updatePosition(1);
-        const mobileContainer = mobileScrollRef.current;
-        if (mobileContainer && mobileContainer.children[1]) {
-          (mobileContainer.children[1] as HTMLElement).scrollIntoView({
-            behavior: "smooth",
-            inline: "center",
-            block: "nearest",
-          });
-        }
         setTimeout(() => {
           setTransitionEnabled(true);
         }, 50);
@@ -981,11 +877,13 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
         <h2 className="font-display text-3xl md:text-5xl">Experience Our Collection</h2>
       </div>
 
-      {/* Desktop Track (>= 768px) with smooth animated transform */}
-      <div className="hidden md:block relative w-full overflow-hidden py-4">
+      {/* Unified Centered Video Carousel Track */}
+      <div className="relative w-full overflow-hidden py-4">
         <div
           ref={trackRef}
-          className="flex gap-6"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="flex gap-4 md:gap-6"
           style={{
             transition: transitionEnabled ? "transform 700ms ease-in-out" : "none",
             transform: `translate3d(${translateX}px, 0, 0)`,
@@ -999,51 +897,23 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
               <div
                 key={item.keyId}
                 onClick={() => handleCardClick(idx)}
-                className={`relative experience-video-card aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden shrink-0 transition-all duration-500 cursor-pointer ${
-                  isActive ? "opacity-100 scale-100" : "opacity-40 scale-95 hover:opacity-70"
+                className={`relative experience-video-card aspect-[9/16] bg-neutral-900 rounded-xl shadow-lg overflow-hidden shrink-0 transition-all duration-500 cursor-pointer w-[260px] xs:w-[280px] sm:w-[310px] md:w-[330px] ${
+                  isActive
+                    ? "opacity-100 scale-100 ring-2 ring-[#C9A84C] shadow-2xl z-20"
+                    : "opacity-40 scale-95 hover:opacity-70 z-10"
                 }`}
               >
                 <ManagedVideo
                   src={item.content.address}
                   isActive={isPlaying}
                   onEnded={handleEnded}
-                  isSectionVisible={sectionVisible && isDesktop}
+                  isSectionVisible={sectionVisible}
                   className="w-full h-full object-cover"
                 />
               </div>
             );
           })}
         </div>
-      </div>
-
-      {/* Mobile Track (< 768px) with native touch horizontal scroll & snap */}
-      <div
-        ref={mobileScrollRef}
-        onScroll={handleMobileScroll}
-        className="flex md:hidden overflow-x-auto scrollbar-none snap-x snap-mandatory gap-4 px-6 py-4 w-full cursor-grab active:cursor-grabbing"
-      >
-        {displayList.map((item, idx) => {
-          const isActive = idx === activeIndex;
-          const isPlaying = idx === playingIndex;
-
-          return (
-            <div
-              key={`mobile-${item.keyId}`}
-              onClick={() => handleMobileCardClick(idx)}
-              className={`snap-center shrink-0 w-[270px] aspect-[9/16] bg-neutral-900 rounded-lg shadow-md overflow-hidden transition-all duration-300 ${
-                isActive ? "opacity-100 scale-100 ring-2 ring-[#C9A84C]/50" : "opacity-50 scale-95"
-              }`}
-            >
-              <ManagedVideo
-                src={item.content.address}
-                isActive={isPlaying}
-                onEnded={handleEnded}
-                isSectionVisible={sectionVisible && !isDesktop}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          );
-        })}
       </div>
     </section>
   );
