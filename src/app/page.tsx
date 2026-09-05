@@ -428,21 +428,23 @@ function CategoryProductRow({ categoryName }: { categoryName: string }) {
 interface VideoCardProps {
   src: string;
   isActive: boolean;
+  isNext?: boolean;
   onEnded?: () => void;
   className?: string;
   isSectionVisible?: boolean;
 }
 
-function ManagedVideo({ src, isActive, onEnded, className, isSectionVisible }: VideoCardProps) {
+function ManagedVideo({ src, isActive, isNext, onEnded, className, isSectionVisible }: VideoCardProps) {
   return (
     <OptimizedCloudinaryVideo
       src={src}
       isActive={isActive}
+      isNext={isNext}
       onEnded={onEnded}
       className={className}
       isSectionVisible={isSectionVisible}
       width={720}
-      quality="q_auto:best"
+      quality="q_auto:good"
     />
   );
 }
@@ -597,8 +599,9 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
       return;
     }
 
-    setPlayingIndex(-1);
+    // Immediately trigger next video playback as carousel animates to center
     setActiveIndex(2);
+    setPlayingIndex(2);
 
     setTimeout(() => {
       setTransitionEnabled(false);
@@ -640,6 +643,7 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
           {displayList.map((item, idx) => {
             const isActive = idx === activeIndex;
             const isPlaying = idx === playingIndex;
+            const isNext = idx === activeIndex + 1;
 
             return (
               <div
@@ -654,6 +658,7 @@ function ReviewVideosSection({ audioUnlocked }: { audioUnlocked: boolean }) {
                 <ManagedVideo
                   src={item.content.address}
                   isActive={isPlaying}
+                  isNext={isNext}
                   onEnded={handleEnded}
                   isSectionVisible={sectionVisible}
                   className="w-full h-full object-cover"
@@ -850,8 +855,9 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
       return;
     }
 
-    setPlayingIndex(-1);
+    // Immediately trigger next video playback as carousel animates to center
     setActiveIndex(2);
+    setPlayingIndex(2);
 
     setTimeout(() => {
       setTransitionEnabled(false);
@@ -893,6 +899,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
           {displayList.map((item, idx) => {
             const isActive = idx === activeIndex;
             const isPlaying = idx === playingIndex;
+            const isNext = idx === activeIndex + 1;
 
             return (
               <div
@@ -907,6 +914,7 @@ function ExperienceCollectionVideosSection({ audioUnlocked }: { audioUnlocked: b
                 <ManagedVideo
                   src={item.content.address}
                   isActive={isPlaying}
+                  isNext={isNext}
                   onEnded={handleEnded}
                   isSectionVisible={sectionVisible}
                   className="w-full h-full object-cover"

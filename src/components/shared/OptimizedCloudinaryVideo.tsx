@@ -8,12 +8,13 @@ export interface OptimizedCloudinaryVideoProps {
   src: string;
   posterSrc?: string;
   isActive: boolean;
+  isNext?: boolean;
   onEnded?: () => void;
   className?: string;
   containerClassName?: string;
   isSectionVisible?: boolean;
   width?: number; // Target width e.g. 720 or 1080
-  quality?: string; // e.g. "q_auto:best"
+  quality?: string; // e.g. "q_auto:good"
   aspectRatioClass?: string; // e.g. "aspect-[9/16]"
 }
 
@@ -21,12 +22,13 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
   src,
   posterSrc,
   isActive,
+  isNext = false,
   onEnded,
   className = "w-full h-full object-cover",
   containerClassName = "",
   isSectionVisible = true,
   width = 720,
-  quality = "q_auto:best",
+  quality = "q_auto:good",
   aspectRatioClass = "aspect-[9/16]",
 }: OptimizedCloudinaryVideoProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -207,8 +209,9 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
     }
   };
 
-  // Determine optimal preload setting (auto for active/near videos to eliminate buffering delay)
-  const preloadSetting = isActive || isNearViewport || isSectionVisible ? "auto" : "metadata";
+  // Active video gets full priority ("auto"). Next upcoming video preloads ("auto").
+  // Inactive videos only fetch metadata to keep network pipe 100% free for smooth streaming.
+  const preloadSetting = isActive ? "auto" : isNext ? "auto" : "metadata";
 
   return (
     <div

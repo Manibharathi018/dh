@@ -58,7 +58,7 @@ export function getCloudinaryUrl(url: string | undefined | null, options: Cloudi
 export function getCloudinaryVideoUrl(url: string | undefined | null, options: CloudinaryOptions = {}): string {
   if (!url) return "";
   const targetWidth = options.width || 720;
-  const quality = options.quality || "q_auto:best";
+  const quality = options.quality || "q_auto:good";
   return getCloudinaryUrl(url, { width: targetWidth, quality });
 }
 
