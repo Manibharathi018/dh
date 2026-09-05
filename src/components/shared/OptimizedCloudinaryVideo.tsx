@@ -12,7 +12,8 @@ export interface OptimizedCloudinaryVideoProps {
   className?: string;
   containerClassName?: string;
   isSectionVisible?: boolean;
-  width?: number; // Target width e.g. 480 or 720
+  width?: number; // Target width e.g. 720 or 1080
+  quality?: string; // e.g. "q_auto:best"
   aspectRatioClass?: string; // e.g. "aspect-[9/16]"
 }
 
@@ -24,7 +25,8 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
   className = "w-full h-full object-cover",
   containerClassName = "",
   isSectionVisible = true,
-  width = 480,
+  width = 720,
+  quality = "q_auto:best",
   aspectRatioClass = "aspect-[9/16]",
 }: OptimizedCloudinaryVideoProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,9 +41,9 @@ export const OptimizedCloudinaryVideo = memo(function OptimizedCloudinaryVideo({
   const [hasError, setHasError] = useState(false);
   const [useFallbackSrc, setUseFallbackSrc] = useState(false);
 
-  // Optimized Cloudinary URLs
-  const videoUrl = getCloudinaryVideoUrl(src, { width });
-  const computedPoster = posterSrc || getCloudinaryPosterUrl(src, { width });
+  // Optimized Cloudinary URLs (crisp HD 720p/1080p with q_auto:best for fine fabric clarity)
+  const videoUrl = getCloudinaryVideoUrl(src, { width, quality });
+  const computedPoster = posterSrc || getCloudinaryPosterUrl(src, { width, quality });
   const activeVideoUrl = useFallbackSrc ? src : videoUrl;
 
   // IntersectionObserver 1: Near Viewport (preload video element 500px before section appears)

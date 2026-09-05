@@ -52,18 +52,19 @@ export function getCloudinaryUrl(url: string | undefined | null, options: Cloudi
 }
 
 /**
- * Injects Cloudinary video optimizations (f_auto, q_auto, width capping).
+ * Injects Cloudinary video optimizations (f_auto, q_auto:best, width capping).
  * Resolves video streams in optimal formats (MP4/WebM/H.265/AV1) matched to browser support.
  */
 export function getCloudinaryVideoUrl(url: string | undefined | null, options: CloudinaryOptions = {}): string {
   if (!url) return "";
   const targetWidth = options.width || 720;
-  return getCloudinaryUrl(url, { width: targetWidth });
+  const quality = options.quality || "q_auto:best";
+  return getCloudinaryUrl(url, { width: targetWidth, quality });
 }
 
 /**
  * Generates an optimized static JPEG/WebP poster thumbnail from a Cloudinary video URL.
- * Injects `so_0` (snapshot at 0s) and image transformations to deliver a ~15KB thumbnail
+ * Injects `so_0` (snapshot at 0s) and image transformations to deliver a crisp HD thumbnail
  * instead of downloading a multi-megabyte video file.
  */
 export function getCloudinaryPosterUrl(url: string | undefined | null, options: CloudinaryOptions = {}): string {
@@ -84,9 +85,10 @@ export function getCloudinaryPosterUrl(url: string | undefined | null, options: 
     posterSuffix = posterSuffix + ".jpg";
   }
 
-  const targetWidth = options.width || 480;
+  const targetWidth = options.width || 720;
+  const quality = options.quality || "q_auto:best";
   const startOffset = options.startOffset !== undefined ? options.startOffset : 0;
-  const transformString = `f_auto,q_auto,w_${targetWidth},c_limit,so_${startOffset}/`;
+  const transformString = `f_auto,${quality},w_${targetWidth},c_limit,so_${startOffset}/`;
 
   return prefix + transformString + posterSuffix;
 }

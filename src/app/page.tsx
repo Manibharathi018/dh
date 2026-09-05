@@ -441,7 +441,8 @@ function ManagedVideo({ src, isActive, onEnded, className, isSectionVisible }: V
       onEnded={onEnded}
       className={className}
       isSectionVisible={isSectionVisible}
-      width={480}
+      width={720}
+      quality="q_auto:best"
     />
   );
 }
